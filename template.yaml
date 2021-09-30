@@ -4,6 +4,7 @@ Transform: AWS::Serverless-2016-10-31
 Globals:
   Function:
     MemorySize: 128
+    Architectures: ["arm64"]
     Handler: bootstrap
     Runtime: provided.al2
     Timeout: 5
