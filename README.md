@@ -6,7 +6,6 @@ This is a simple serverless application using Rust as its main programming langu
 
 * [Rust](https://www.rust-lang.org/)
 * The [AWS SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-install.html)
-* A [musl libc](https://musl.cc/) toolchain
 
 ### Usage
 
