@@ -12,7 +12,6 @@ This is a simple serverless application using Rust as its main programming langu
 
 ```bash
 # Compile and prepare Lambda functions
-# Note: if you're on a Mac computer, use make build-mac instead
 make build
 
 # Deploy the functions on AWS
