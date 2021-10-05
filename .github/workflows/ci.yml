@@ -1,0 +1,50 @@
+name: ci
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        rust: [stable]
+        os: [ubuntu-latest]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Arm64 toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+            target: aarch64-unknown-linux-gnu
+            toolchain: ${{ matrix.rust }}
+            override: true
+            components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v1
+      - name: Run cargo fmt
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+      - name: Install python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.9"
+      - name: Install AWS SAM cli
+        uses: aws-actions/setup-sam@v1
+      - name: Run cargo clippy
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+      - name: Build 
+        run: make build
+      # TODO: separate integration and unit tests
+      # - name: Test
+      #   run: make tests

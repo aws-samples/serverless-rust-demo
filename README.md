@@ -1,3 +1,5 @@
+![build](https://github.com/aws-samples/serverless-rust-demo/actions/workflows/action.yml/badge.svg)
+
 ## Serverless Rust Demo
 
 This is a simple serverless application using Rust as its main programming language.
