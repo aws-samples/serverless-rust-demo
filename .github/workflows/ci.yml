@@ -1,4 +1,4 @@
-name: tests
+name: ci
 
 on: [push]
 
@@ -11,6 +11,10 @@ jobs:
         os: [ubuntu-latest]
     steps:
       - uses: actions/checkout@v2
+      - name: Install Arm64 toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu
       - name: Install Rust
         uses: actions-rs/toolchain@v1
         with:
@@ -33,11 +37,8 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: clippy
-#      - name: Run cargo test
-#        uses: actions-rs/cargo@v1
-#        with:
-#          command: test
       - name: Build 
         run: make build
-      - name: Test
-        run: make test
+      # TODO: separate integration and unit tests
+      # - name: Test
+      #   run: make tests
