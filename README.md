@@ -7,6 +7,7 @@ This is a simple serverless application using Rust as its main programming langu
 ### Requirements
 
 * [Rust](https://www.rust-lang.org/)
+* [Cross](https://github.com/rust-embedded/cross)
 * The [AWS SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-install.html)
 
 ### Usage
