@@ -17,10 +17,6 @@ jobs:
         os: [ubuntu-latest]
     steps:
       - uses: actions/checkout@v2
-      - name: Install Arm64 toolchain
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y gcc-aarch64-linux-gnu
       - name: Install Rust
         uses: actions-rs/toolchain@v1
         with:
@@ -43,8 +39,14 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: clippy
-      - name: Build 
-        run: make build
+      - name: Build
+        uses: actions-rs/cargo@v1
+        with:
+          use-cross: true
+          command: build
+          args: --target aarch64-unknown-linux-gnu
+      # - name: Build 
+      #   run: make build
       # TODO: separate integration and unit tests
       # - name: Test
       #   run: make tests
