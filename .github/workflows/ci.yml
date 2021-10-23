@@ -48,6 +48,5 @@ jobs:
       - name: Test
         uses: actions-rs/cargo@v1
         with:
-          use-cross: true
           command: test
-          args: --lib --bins --target aarch64-unknown-linux-gnu
+          args: --lib --bins
