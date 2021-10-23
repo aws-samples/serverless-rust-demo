@@ -24,7 +24,10 @@ deploy:
 		else sam deploy -g --stack-name $(STACK_NAME); \
 	fi
 
-tests:
+tests-unit:
+	cargo test --lib --bins
+
+tests-integ:
 	RUST_BACKTRACE=1 REST_API=$$(aws cloudformation describe-stacks --stack-name $(STACK_NAME) \
 		--query 'Stacks[0].Outputs[?OutputKey==`ApiUrl`].OutputValue' \
-		--output text) cargo test
+		--output text) cargo test 
