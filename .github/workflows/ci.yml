@@ -45,8 +45,8 @@ jobs:
           use-cross: true
           command: build
           args: --target aarch64-unknown-linux-gnu
-      # - name: Build 
-      #   run: make build
-      # TODO: separate integration and unit tests
-      # - name: Test
-      #   run: make tests
+      - name: Test
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --lib --bins
