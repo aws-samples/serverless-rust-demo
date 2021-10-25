@@ -23,10 +23,11 @@ pub fn setup_tracing() {
 // Retrieve a DynamoDBStore instance
 pub async fn get_store() -> impl Store {
     let config = aws_config::load_from_env().await;
+    let client = aws_sdk_dynamodb::Client::new(&config);
     let table_name = std::env::var("TABLE_NAME").expect("TABLE_NAME must be set");
     info!(
         "Initializing DynamoDB store with table name: {}",
         table_name
     );
-    DynamoDBStore::new(&config, &table_name)
+    DynamoDBStore::new(client, &table_name)
 }

@@ -51,7 +51,7 @@ impl Store for MemoryStore {
 
 #[cfg(test)]
 mod tests {
-    use super::{MemoryStore, Product};
+    use super::*;
     use crate::{Error, Store};
 
     struct ConstProduct<'a> {
@@ -148,7 +148,7 @@ mod tests {
 
         Ok(())
     }
-    
+
     #[tokio::test]
     async fn test_delete() -> Result<(), Error> {
         // GIVEN a store with a product
