@@ -1,5 +1,5 @@
 use aws_sdk_dynamodb::model::AttributeValue;
-use smithy_http::result::SdkError;
+use aws_smithy_http::result::SdkError;
 use std::error;
 use std::fmt;
 

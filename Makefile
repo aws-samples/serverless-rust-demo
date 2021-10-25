@@ -5,7 +5,8 @@ ARCH := aarch64-unknown-linux-gnu
 
 .PHONY: build deploy tests
 
-all: build deploy tests
+all: build tests-unit deploy tests-integ
+ci: build tests-unit
 
 build:
 	cross build --release --target $(ARCH)
