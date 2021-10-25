@@ -8,16 +8,16 @@ edition = "2021"
 
 [dependencies]
 async-trait = "0.1"
-aws-config = { git = "https://github.com/awslabs/aws-sdk-rust", tag = "v0.0.18-alpha", package = "aws-config" }
-aws-sdk-dynamodb = { git = "https://github.com/awslabs/aws-sdk-rust", tag = "v0.0.18-alpha", package = "aws-sdk-dynamodb" }
-aws-types = { git = "https://github.com/awslabs/aws-sdk-rust", tag = "v0.0.18-alpha", package = "aws-types" }
+aws-config = { git = "https://github.com/awslabs/aws-sdk-rust", tag = "v0.0.22-alpha", package = "aws-config" }
+aws-sdk-dynamodb = { git = "https://github.com/awslabs/aws-sdk-rust", tag = "v0.0.22-alpha", package = "aws-sdk-dynamodb" }
+aws-smithy-http = { git = "https://github.com/awslabs/aws-sdk-rust", tag = "v0.0.22-alpha", package = "aws-smithy-http" }
+aws-types = { git = "https://github.com/awslabs/aws-sdk-rust", tag = "v0.0.22-alpha", package = "aws-types" }
 lambda_runtime = "0.4"
 lambda_http = "0.4"
 opentelemetry = "0.16"
 opentelemetry-otlp = "0.9"
 serde = "1"
 serde_json = "1.0"
-smithy_http = { git = "https://github.com/awslabs/aws-sdk-rust", tag = "v0.0.18-alpha", package = "smithy-http" }
 tracing = "0.1"
 tracing-subscriber = { version = "0.2", features = ["fmt", "json"] }
 tracing-opentelemetry = "0.15"
