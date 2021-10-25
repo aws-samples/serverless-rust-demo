@@ -10,6 +10,7 @@ edition = "2021"
 async-trait = "0.1"
 aws-config = { git = "https://github.com/awslabs/aws-sdk-rust", tag = "v0.0.22-alpha", package = "aws-config" }
 aws-sdk-dynamodb = { git = "https://github.com/awslabs/aws-sdk-rust", tag = "v0.0.22-alpha", package = "aws-sdk-dynamodb" }
+aws-smithy-client = { git = "https://github.com/awslabs/aws-sdk-rust", tag = "v0.0.22-alpha", package = "aws-smithy-client", features = ["test-util"] }
 aws-smithy-http = { git = "https://github.com/awslabs/aws-sdk-rust", tag = "v0.0.22-alpha", package = "aws-smithy-http" }
 aws-types = { git = "https://github.com/awslabs/aws-sdk-rust", tag = "v0.0.22-alpha", package = "aws-types" }
 lambda_runtime = "0.4"
@@ -25,5 +26,6 @@ tokio = { version = "1", features = ["full"] }
 
 [dev-dependencies]
 float-cmp = "0.9"
+http = "0.2"
 rand = "0.8"
 reqwest = { version = "0.11", features = ["json"] }
