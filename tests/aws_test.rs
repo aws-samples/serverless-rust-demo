@@ -7,7 +7,7 @@
 //! which points to the endpoint of the Amazon API Gateway API.
 
 use float_cmp::approx_eq;
-use products::{store::AllResponse, Product};
+use products::{ProductRange, Product};
 use rand::distributions::Alphanumeric;
 use rand::prelude::*;
 use reqwest::StatusCode;
@@ -57,7 +57,7 @@ async fn test_flow() -> Result<(), E> {
     // Get all products
     let res = client.get(&rest_api).send().await?;
     assert_eq!(res.status(), StatusCode::OK);
-    let res_products: AllResponse = res.json().await?;
+    let res_products: ProductRange = res.json().await?;
     // At least one product should be returned
     assert!(res_products.products.len() >= 1);
 
