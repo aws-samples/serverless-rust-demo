@@ -3,11 +3,10 @@ use lambda_http::{
     lambda_runtime::{self, Context},
     IntoResponse, Request, Response,
 };
-use products::{get_store, setup_tracing, Store};
+use products::{get_service, setup_tracing, Service};
 use serde_json::json;
 use tracing::{error, instrument};
 
-type StoreSync = dyn Store + Send + Sync;
 type E = Box<dyn std::error::Error + Send + Sync + 'static>;
 
 #[tokio::main]
@@ -15,24 +14,24 @@ async fn main() -> Result<(), E> {
     // Initialize logger
     setup_tracing();
 
-    // Initialize DynamoDB store
-    let store = get_store().await;
+    // Initialize service
+    let service = get_service().await;
 
     // Run Lambda function
     lambda_runtime::run(handler(|event: Request, ctx: Context| {
-        get_products(&store, event, ctx)
+        get_products(&service, event, ctx)
     }))
     .await?;
     Ok(())
 }
 
-#[instrument(skip(store))]
+#[instrument(skip(service))]
 async fn get_products(
-    store: &StoreSync,
+    service: &Service,
     _event: Request,
     _: Context,
 ) -> Result<impl IntoResponse, E> {
-    Ok(match store.all(None).await {
+    Ok(match service.get_products(None).await {
         Ok(res) => Response::builder()
             .status(200)
             .header("content-type", "application/json")

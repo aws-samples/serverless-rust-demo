@@ -1,4 +1,4 @@
-use crate::{DynamoDBStore, Store};
+use crate::{DynamoDBStore, Service};
 // use opentelemetry_otlp::WithExportConfig;
 use tracing::info;
 // use tracing_subscriber::layer::SubscriberExt;
@@ -20,8 +20,7 @@ pub fn setup_tracing() {
     tracing::subscriber::set_global_default(subscriber).expect("failed to set tracing subscriber");
 }
 
-// Retrieve a DynamoDBStore instance
-pub async fn get_store() -> impl Store {
+pub async fn get_service() -> Service {
     let config = aws_config::load_from_env().await;
     let client = aws_sdk_dynamodb::Client::new(&config);
     let table_name = std::env::var("TABLE_NAME").expect("TABLE_NAME must be set");
@@ -29,5 +28,6 @@ pub async fn get_store() -> impl Store {
         "Initializing DynamoDB store with table name: {}",
         table_name
     );
-    DynamoDBStore::new(client, &table_name)
+    let store = Box::new(DynamoDBStore::new(client, &table_name));
+    Service::new(store)
 }

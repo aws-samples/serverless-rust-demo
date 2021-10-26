@@ -1,5 +1,5 @@
-use super::{AllResponse, Store};
-use crate::{Error, Product};
+use super::Store;
+use crate::{Error, Product, ProductRange};
 use async_trait::async_trait;
 use std::collections::HashMap;
 use std::sync::RwLock;
@@ -18,8 +18,8 @@ impl MemoryStore {
 
 #[async_trait]
 impl Store for MemoryStore {
-    async fn all(&self, _: Option<&str>) -> Result<AllResponse, Error> {
-        Ok(AllResponse {
+    async fn all(&self, _: Option<&str>) -> Result<ProductRange, Error> {
+        Ok(ProductRange {
             products: self
                 .data
                 .read()
