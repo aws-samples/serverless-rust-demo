@@ -6,3 +6,10 @@ pub struct Product {
     pub name: String,
     pub price: f64,
 }
+
+#[derive(Default, Deserialize, Serialize)]
+pub struct ProductRange {
+    pub products: Vec<Product>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub next: Option<String>,
+}

@@ -1,5 +1,5 @@
-use super::{AllResponse, Store};
-use crate::{Error, Product};
+use super::Store;
+use crate::{Error, Product, ProductRange};
 use async_trait::async_trait;
 use aws_sdk_dynamodb::{model::AttributeValue, Client};
 use std::collections::HashMap;
@@ -77,7 +77,7 @@ where
 {
     #[instrument(skip(self))]
     // Get all items
-    async fn all(&self, next: Option<&str>) -> Result<AllResponse, Error> {
+    async fn all(&self, next: Option<&str>) -> Result<ProductRange, Error> {
         // Scan DynamoDB table
         let mut req = self.client.scan().table_name(&self.table_name);
         req = if let Some(next) = next {
@@ -98,7 +98,7 @@ where
         let next = res
             .last_evaluated_key
             .map(|m| get_key("id", ValueType::S, &m).unwrap());
-        Ok(AllResponse { products, next })
+        Ok(ProductRange { products, next })
     }
     // Get item
     async fn get(&self, id: &str) -> Result<Option<Product>, Error> {

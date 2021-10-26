@@ -4,11 +4,10 @@ use lambda_http::{
     lambda_runtime::{self, Context},
     IntoResponse, Request, Response,
 };
-use products::{get_store, setup_tracing, Store};
+use products::{get_service, setup_tracing, Service};
 use serde_json::json;
 use tracing::{info, instrument, warn};
 
-type StoreSync = dyn Store + Send + Sync;
 type E = Box<dyn std::error::Error + Send + Sync + 'static>;
 
 #[tokio::main]
@@ -16,20 +15,20 @@ async fn main() -> Result<(), E> {
     // Initialize logger
     setup_tracing();
 
-    // Initialize DynamoDB store
-    let store = get_store().await;
+    // Initialize service
+    let service = get_service().await;
 
     // Run Lambda function
     lambda_runtime::run(handler(|event: Request, ctx: Context| {
-        delete_product(&store, event, ctx)
+        delete_product(&service, event, ctx)
     }))
     .await?;
     Ok(())
 }
 
-#[instrument(skip(store))]
+#[instrument(skip(service))]
 async fn delete_product(
-    store: &StoreSync,
+    service: &Service,
     event: Request,
     _: Context,
 ) -> Result<impl IntoResponse, E> {
@@ -38,7 +37,7 @@ async fn delete_product(
     let id = path_parameters.get("id").expect("id must be set");
     info!("Deleting product {}", id);
 
-    match store.delete(id).await {
+    match service.delete_product(&id).await {
         Ok(_) => {
             info!("Product {} deleted", id);
             Ok(Response::builder()
