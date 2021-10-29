@@ -1,3 +1,7 @@
+//! Product representations
+//! 
+//! This module contains the representations of the products.
+
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]

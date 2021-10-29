@@ -1,19 +1,26 @@
+//! # DynamoDB store implementation
+//!
+//! This implementation uses the AWS SDK for DynamoDB.
+//!
+//! We have to pass a generic type parameter `C` for the underlying client,
+//! restricted to something that implements the SmithyConnector trait so we can
+//! use it with both the actual AWS SDK client and a mock implementation.
+
 use super::Store;
 use crate::{Error, Product, ProductRange};
 use async_trait::async_trait;
 use aws_sdk_dynamodb::{model::AttributeValue, Client};
-use std::collections::HashMap;
 use std::str;
 use tracing::instrument;
+
+mod attributevaluesext;
+use attributevaluesext::AttributeValuesExt;
+mod productext;
+use productext::ProductsExt;
 
 pub struct DynamoDBStore<C> {
     client: Client<C>,
     table_name: String,
-}
-
-enum ValueType {
-    N,
-    S,
 }
 
 impl<C> DynamoDBStore<C>
@@ -28,55 +35,13 @@ where
     }
 }
 
-trait ProductDynamoDBStoreExt {
-    fn from_dynamodb(value: HashMap<String, AttributeValue>) -> Result<Product, Error>;
-    fn to_dynamodb(&self) -> HashMap<String, AttributeValue>;
-}
-
-impl ProductDynamoDBStoreExt for Product {
-    fn from_dynamodb(value: HashMap<String, AttributeValue>) -> Result<Product, Error> {
-        Ok(Product {
-            id: get_key("id", ValueType::S, &value)?,
-            name: get_key("name", ValueType::S, &value)?,
-            price: get_key("price", ValueType::N, &value)?.parse::<f64>()?,
-        })
-    }
-
-    fn to_dynamodb(&self) -> HashMap<String, AttributeValue> {
-        let mut retval = HashMap::new();
-        retval.insert("id".to_owned(), AttributeValue::S(self.id.clone()));
-        retval.insert("name".to_owned(), AttributeValue::S(self.name.clone()));
-        retval.insert(
-            "price".to_owned(),
-            AttributeValue::N(format!("{:}", self.price)),
-        );
-
-        retval
-    }
-}
-
-fn get_key(
-    key: &str,
-    t: ValueType,
-    item: &HashMap<String, AttributeValue>,
-) -> Result<String, Error> {
-    let v = item
-        .get(key)
-        .ok_or_else(|| Error::InternalError(format!("Missing '{}'", key)))?;
-
-    Ok(match t {
-        ValueType::N => v.as_n()?.to_owned(),
-        ValueType::S => v.as_s()?.to_owned(),
-    })
-}
-
 #[async_trait]
 impl<C> Store for DynamoDBStore<C>
 where
     C: aws_smithy_client::bounds::SmithyConnector,
 {
+    /// Get all items
     #[instrument(skip(self))]
-    // Get all items
     async fn all(&self, next: Option<&str>) -> Result<ProductRange, Error> {
         // Scan DynamoDB table
         let mut req = self.client.scan().table_name(&self.table_name);
@@ -97,10 +62,11 @@ where
         };
         let next = res
             .last_evaluated_key
-            .map(|m| get_key("id", ValueType::S, &m).unwrap());
+            .map(|m| m.get_s("id").unwrap());
         Ok(ProductRange { products, next })
     }
-    // Get item
+    /// Get item
+    #[instrument(skip(self))]
     async fn get(&self, id: &str) -> Result<Option<Product>, Error> {
         let res = self
             .client
@@ -114,7 +80,8 @@ where
             None => None,
         })
     }
-    // Create or update an item
+    /// Create or update an item
+    #[instrument(skip(self))]
     async fn put(&self, product: &Product) -> Result<(), Error> {
         self.client
             .put_item()
@@ -125,7 +92,8 @@ where
 
         Ok(())
     }
-    // Delete item
+    /// Delete item
+    #[instrument(skip(self))]
     async fn delete(&self, id: &str) -> Result<(), Error> {
         self.client
             .delete_item()
@@ -146,7 +114,7 @@ mod tests {
     use aws_smithy_client::test_connection::TestConnection;
     use aws_smithy_http::body::SdkBody;
 
-    // Config for mocking DynamoDB
+    /// Config for mocking DynamoDB
     async fn get_mock_config() -> Config {
         let cfg = aws_config::from_env()
             .region(Region::new("eu-west-1"))
@@ -259,7 +227,9 @@ mod tests {
         let conn = TestConnection::new(vec![(
             get_request_builder()
                 .header("x-amz-target", "DynamoDB_20120810.DeleteItem")
-                .body(SdkBody::from(r#"{"TableName": "test", "Key": {"id": {"S": "1"}}}"#))
+                .body(SdkBody::from(
+                    r#"{"TableName": "test", "Key": {"id": {"S": "1"}}}"#,
+                ))
                 .unwrap(),
             http::Response::builder()
                 .status(200)

@@ -1,10 +1,15 @@
+//! # In-memory store implementation
+//!
+//! This is a simple in-memory store implementation. It is not intended to be
+//! used in production, but rather as a simple implementation for local
+//! testing purposes.
+
 use super::Store;
 use crate::{Error, Product, ProductRange};
 use async_trait::async_trait;
 use std::collections::HashMap;
 use std::sync::RwLock;
 
-// In-memory store
 #[derive(Default)]
 pub struct MemoryStore {
     data: RwLock<HashMap<String, Product>>,

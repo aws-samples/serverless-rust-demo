@@ -5,9 +5,10 @@ use std::fmt;
 
 #[derive(Debug)]
 pub enum Error {
-    InitError(String),
-    ClientError(String),
-    InternalError(String),
+    InitError(&'static str),
+    ClientError(&'static str),
+    InternalError(&'static str),
+    SdkError(String),
 }
 
 impl fmt::Display for Error {
@@ -16,6 +17,7 @@ impl fmt::Display for Error {
             Error::InitError(msg) => write!(f, "InitError: {}", msg),
             Error::ClientError(msg) => write!(f, "ClientError: {}", msg),
             Error::InternalError(msg) => write!(f, "InternalError: {}", msg),
+            Error::SdkError(err) => write!(f, "SdkError: {}", err),
         }
     }
 }
@@ -24,13 +26,13 @@ impl error::Error for Error {}
 
 impl From<std::num::ParseFloatError> for Error {
     fn from(_: std::num::ParseFloatError) -> Error {
-        Error::InternalError("Unable to parse float".to_string())
+        Error::InternalError("Unable to parse float")
     }
 }
 
 impl From<&AttributeValue> for Error {
     fn from(_: &AttributeValue) -> Error {
-        Error::InternalError("Invalid value type".to_string())
+        Error::InternalError("Invalid value type")
     }
 }
 
@@ -39,6 +41,6 @@ where
     E: error::Error,
 {
     fn from(value: SdkError<E>) -> Error {
-        Error::InternalError(format!("AWS Failure: {:?}", value))
+        Error::SdkError(format!("AWS Failure: {:?}", value))
     }
 }
