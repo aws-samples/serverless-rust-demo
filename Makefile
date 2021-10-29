@@ -17,7 +17,6 @@ build:
 build-%:
 	mkdir -p ./build/$*
 	cp -v ./target/$(ARCH)/release/$* ./build/$*/bootstrap
-	cp -v ./otel-config.yaml ./build/$*/collector.yaml
 
 deploy:
 	if [ -f samconfig.toml ]; \

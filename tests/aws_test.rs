@@ -7,7 +7,7 @@
 //! which points to the endpoint of the Amazon API Gateway API.
 
 use float_cmp::approx_eq;
-use products::{ProductRange, Product};
+use products::{Product, ProductRange};
 use rand::distributions::Alphanumeric;
 use rand::prelude::*;
 use reqwest::StatusCode;
@@ -36,14 +36,16 @@ async fn test_flow() -> Result<(), E> {
     };
 
     // Put new product
+    println!("PUT new product");
     let res = client
         .put(format!("{}/{}", rest_api, product.id))
         .json(&product)
         .send()
         .await?;
-    assert_eq!(res.status(), StatusCode::OK);
+    assert_eq!(res.status(), StatusCode::CREATED);
 
     // Get product
+    println!("GET product");
     let res = client
         .get(format!("{}/{}", rest_api, product.id))
         .send()
@@ -55,6 +57,7 @@ async fn test_flow() -> Result<(), E> {
     assert!(approx_eq!(f64, res_product.price, product.price));
 
     // Get all products
+    println!("GET all products");
     let res = client.get(&rest_api).send().await?;
     assert_eq!(res.status(), StatusCode::OK);
     let res_products: ProductRange = res.json().await?;
@@ -62,6 +65,7 @@ async fn test_flow() -> Result<(), E> {
     assert!(res_products.products.len() >= 1);
 
     // Delete product
+    println!("DELETE product");
     let res = client
         .delete(format!("{}/{}", rest_api, product.id))
         .send()
@@ -69,6 +73,7 @@ async fn test_flow() -> Result<(), E> {
     assert_eq!(res.status(), StatusCode::OK);
 
     // Get product again
+    println!("GET product again");
     let res = client
         .get(format!("{}/{}", rest_api, product.id))
         .send()

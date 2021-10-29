@@ -2,7 +2,13 @@
 
 ![build](https://github.com/aws-samples/serverless-rust-demo/actions/workflows/ci.yml/badge.svg)
 
-This is a simple serverless application using Rust as its main programming language.
+<p align="center">
+  <img src="imgs/diagram.png" alt="Architecture diagram"/>
+</p>
+
+This is a simple serverless application built in Rust. It consists of an API Gateway backed by four Lambda functions and a DynamoDB table for storage.
+
+This single crate will create [four different binaries](./src/bin), one for each Lambda function. It uses an [hexagonal architecture pattern](https://aws.amazon.com/blogs/compute/developing-evolutionary-architecture-with-aws-lambda/) to decouple the [entry points](./src/bin), from the main [domain logic](./src/lib.rs), and the [storage layer](./src/store).
 
 ### Requirements
 
