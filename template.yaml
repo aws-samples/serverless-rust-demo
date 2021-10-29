@@ -13,10 +13,6 @@ Globals:
       Variables:
         RUST_LOG: info
         TABLE_NAME: !Ref Table
-    #     OPENTELEMETRY_COLLECTOR_CONFIG_FILE: /var/task/collector.yaml
-    # Layers:
-    #   # OpenTelemetry Layer
-    #   - !Sub "arn:aws:lambda:${AWS::Region}:901920570463:layer:aws-otel-collector-ver-0-33-0:1"
 
 Resources:
   GetProductsFunction:
@@ -108,5 +104,5 @@ Resources:
 
 Outputs:
   ApiUrl:
-    Description: "API Gateway endpoint URL for Prod environment for First Function"
+    Description: "API Gateway endpoint URL"
     Value: !Sub "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com/"
