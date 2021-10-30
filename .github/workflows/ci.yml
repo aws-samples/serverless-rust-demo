@@ -29,22 +29,10 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: fmt
-      - name: Install python
-        uses: actions/setup-python@v2
-        with:
-          python-version: "3.9"
-      - name: Install AWS SAM cli
-        uses: aws-actions/setup-sam@v1
       - name: Run cargo clippy
         uses: actions-rs/cargo@v1
         with:
           command: clippy
-      - name: Build
-        uses: actions-rs/cargo@v1
-        with:
-          use-cross: true
-          command: build
-          args: --target aarch64-unknown-linux-gnu
       - name: Test
         uses: actions-rs/cargo@v1
         with:
