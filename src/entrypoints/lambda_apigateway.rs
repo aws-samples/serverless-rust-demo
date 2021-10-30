@@ -1,10 +1,5 @@
-use lambda_http::{
-    ext::RequestExt,
-    lambda_runtime::Context,
-    IntoResponse, Request,
-    Body,
-};
-use crate::{Product, Service, utils::response};
+use crate::{utils::response, Product, Service};
+use lambda_http::{ext::RequestExt, lambda_runtime::Context, Body, IntoResponse, Request};
 use serde_json::json;
 use tracing::{error, info, instrument, warn};
 
@@ -93,8 +88,7 @@ pub async fn get_product(
     // an error.
     Ok(match product {
         // Product exists
-        Ok(Some(product)) => 
-            response(200, json!(product).to_string()),
+        Ok(Some(product)) => response(200, json!(product).to_string()),
         // Product doesn't exist
         Ok(None) => {
             warn!("Product not found: {}", id);
@@ -110,7 +104,6 @@ pub async fn get_product(
         }
     })
 }
-
 
 /// Retrieve products
 #[instrument(skip(service))]
@@ -137,7 +130,6 @@ pub async fn get_products(
         }
     })
 }
-
 
 /// Put a product
 #[instrument(skip(service))]

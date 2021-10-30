@@ -25,16 +25,18 @@ impl EventExt for Event {
 
 #[cfg(test)]
 mod tests {
-    use crate::Product;
     use super::*;
+    use crate::Product;
 
     #[test]
     fn test_to_eventbridge() {
-        let event = Event::Created { product: Product {
-            id: "123".to_string(),
-            name: "test".to_string(),
-            price: 10.0,
-        }};
+        let event = Event::Created {
+            product: Product {
+                id: "123".to_string(),
+                name: "test".to_string(),
+                price: 10.0,
+            },
+        };
         let entry = event.to_eventbridge("test-bus");
         assert_eq!(entry.event_bus_name.unwrap(), "test-bus");
         assert_eq!(entry.source.unwrap(), SOURCE);

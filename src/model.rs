@@ -1,4 +1,4 @@
-//! Product representations
+//! Data models
 //!
 //! This module contains the representations of the products.
 
@@ -30,7 +30,7 @@ impl Event {
     pub fn id(&self) -> &str {
         match self {
             Event::Created { product } => product.id.as_str(),
-            Event::Updated { old, new } => new.id.as_str(),
+            Event::Updated { new, .. } => new.id.as_str(),
             Event::Deleted { product } => product.id.as_str(),
         }
     }

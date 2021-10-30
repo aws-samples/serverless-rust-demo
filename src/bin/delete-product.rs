@@ -3,7 +3,7 @@ use lambda_http::{
     lambda_runtime::{self, Context},
     Request,
 };
-use products::{utils::*, entrypoints::lambda_apigateway::delete_product};
+use products::{entrypoints::lambda_apigateway::delete_product, utils::*};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
@@ -34,4 +34,3 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>
     .await?;
     Ok(())
 }
-

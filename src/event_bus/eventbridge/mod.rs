@@ -44,7 +44,7 @@ where
 
     /// Publish a batch of events to the event bus.
     #[instrument(skip(self))]
-    async fn send_events(&self, events: &[&Self::E]) -> Result<(), Error> {
+    async fn send_events(&self, events: &[Self::E]) -> Result<(), Error> {
         // Send batches of 10 events at a time
         //
         // EventBridge has a limit of 10 events per `put_events()` request.

@@ -9,24 +9,24 @@
 pub mod entrypoints;
 mod error;
 pub mod event_bus;
-mod product;
-mod store;
+mod model;
+pub mod store;
 pub mod utils;
 
 pub use error::Error;
 use event_bus::EventBus;
-pub use product::{Event, Product, ProductRange};
+pub use model::{Event, Product, ProductRange};
 use store::Store;
 
 pub struct Service {
     store: Box<dyn Store + Send + Sync>,
-    event_bus: Box<dyn EventBus<E=Event> + Send + Sync>,
+    event_bus: Box<dyn EventBus<E = Event> + Send + Sync>,
 }
 
 impl Service {
     pub fn new(
         store: Box<dyn Store + Send + Sync>,
-        event_bus: Box<dyn EventBus<E=Event> + Send + Sync>,
+        event_bus: Box<dyn EventBus<E = Event> + Send + Sync>,
     ) -> Self {
         Self { store, event_bus }
     }
@@ -52,7 +52,7 @@ impl Service {
     }
 
     // Send a batch of events
-    pub async fn send_events(&self, events: &[&Event]) -> Result<(), Error> {
+    pub async fn send_events(&self, events: &[Event]) -> Result<(), Error> {
         self.event_bus.send_events(events).await
     }
 }

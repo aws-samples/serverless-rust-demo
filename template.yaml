@@ -92,6 +92,30 @@ Resources:
     Metadata:
       BuildMethod: makefile
 
+  DDBStreamsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: build/dynamodb-streams/
+      Timeout: 10
+      Events:
+        TableStream:
+          Type: DynamoDB
+          Properties:
+            BatchSize: 1000
+            MaximumBatchingWindowInSeconds: 10
+            StartingPosition: TRIM_HORIZON
+            Stream: !GetAtt Table.StreamArn
+      Environment:
+        Variables:
+          EVENT_BUS_NAME: !Ref EventBus
+      MemorySize: 3072
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action: events:PutEvents
+              Resource: !GetAtt EventBus.Arn
+
   Table:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -102,6 +126,8 @@ Resources:
       KeySchema:
         - AttributeName: id
           KeyType: HASH
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
 
   EventBus:
     Type: AWS::Events::EventBus
