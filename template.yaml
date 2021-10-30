@@ -13,6 +13,7 @@ Globals:
       Variables:
         RUST_LOG: info
         TABLE_NAME: !Ref Table
+        EVENT_BUS_NAME: !Ref EventBus
 
 Resources:
   GetProductsFunction:
@@ -101,6 +102,11 @@ Resources:
       KeySchema:
         - AttributeName: id
           KeyType: HASH
+
+  EventBus:
+    Type: AWS::Events::EventBus
+    Properties:
+      Name: !Ref AWS::StackName
 
 Outputs:
   ApiUrl:
