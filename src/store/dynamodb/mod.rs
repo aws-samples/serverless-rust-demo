@@ -1,10 +1,6 @@
 //! # DynamoDB store implementation
 //!
-//! This implementation uses the AWS SDK for DynamoDB.
-//!
-//! We have to pass a generic type parameter `C` for the underlying client,
-//! restricted to something that implements the SmithyConnector trait so we can
-//! use it with both the actual AWS SDK client and a mock implementation.
+//! Store implementation using the AWS SDK for DynamoDB.
 
 use super::Store;
 use crate::{Error, Product, ProductRange};
@@ -13,11 +9,15 @@ use aws_sdk_dynamodb::{model::AttributeValue, Client};
 use std::str;
 use tracing::instrument;
 
-mod attributevaluesext;
-use attributevaluesext::AttributeValuesExt;
-mod productext;
-use productext::ProductsExt;
+mod ext;
+use ext::{AttributeValuesExt, ProductsExt};
 
+
+/// DynamoDB store implementation.
+/// 
+/// We have to pass a generic type parameter `C` for the underlying client,
+/// restricted to something that implements the SmithyConnector trait so we can
+/// use it with both the actual AWS SDK client and a mock implementation.
 pub struct DynamoDBStore<C> {
     client: Client<C>,
     table_name: String,
