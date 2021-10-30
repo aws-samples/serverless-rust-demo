@@ -7,7 +7,7 @@ use crate::{Error, Product, ProductRange};
 use async_trait::async_trait;
 use aws_sdk_dynamodb::{model::AttributeValue, Client};
 use std::str;
-use tracing::instrument;
+use tracing::{info, instrument};
 
 mod ext;
 use ext::{AttributeValuesExt, ProductsExt};
@@ -44,6 +44,7 @@ where
     #[instrument(skip(self))]
     async fn all(&self, next: Option<&str>) -> Result<ProductRange, Error> {
         // Scan DynamoDB table
+        info!("Scanning DynamoDB table");
         let mut req = self.client.scan().table_name(&self.table_name);
         req = if let Some(next) = next {
             req.exclusive_start_key("id", AttributeValue::S(next.to_owned()))
@@ -68,6 +69,7 @@ where
     /// Get item
     #[instrument(skip(self))]
     async fn get(&self, id: &str) -> Result<Option<Product>, Error> {
+        info!("Getting item with id '{}' from DynamoDB table", id);
         let res = self
             .client
             .get_item()
@@ -75,6 +77,7 @@ where
             .key("id", AttributeValue::S(id.to_owned()))
             .send()
             .await?;
+
         Ok(match res.item {
             Some(item) => Some(Product::from_dynamodb(item)?),
             None => None,
@@ -83,6 +86,7 @@ where
     /// Create or update an item
     #[instrument(skip(self))]
     async fn put(&self, product: &Product) -> Result<(), Error> {
+        info!("Putting item with id '{}' into DynamoDB table", product.id);
         self.client
             .put_item()
             .table_name(&self.table_name)
@@ -95,6 +99,7 @@ where
     /// Delete item
     #[instrument(skip(self))]
     async fn delete(&self, id: &str) -> Result<(), Error> {
+        info!("Deleting item with id '{}' from DynamoDB table", id);
         self.client
             .delete_item()
             .table_name(&self.table_name)
