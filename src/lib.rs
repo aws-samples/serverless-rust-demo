@@ -6,6 +6,7 @@
 //! In a real application, you would probably want to add some business logic
 //! here, such as validating the data, or adding additional data to the response.
 
+pub mod entrypoints;
 mod error;
 mod event_bus;
 mod product;

@@ -1,11 +1,9 @@
 use lambda_http::{
     handler,
     lambda_runtime::{self, Context},
-    IntoResponse, Request,
+    Request,
 };
-use products::{utils::*, Service};
-use serde_json::json;
-use tracing::{error, instrument};
+use products::{utils::*, entrypoints::lambda_apigateway::get_products};
 
 type E = Box<dyn std::error::Error + Send + Sync + 'static>;
 
@@ -37,30 +35,4 @@ async fn main() -> Result<(), E> {
     }))
     .await?;
     Ok(())
-}
-
-/// Retrieve products
-#[instrument(skip(service))]
-async fn get_products(
-    service: &Service,
-    _event: Request,
-    _: Context,
-) -> Result<impl IntoResponse, E> {
-    // Retrieve products
-    // TODO: Add pagination
-    let res = service.get_products(None).await;
-
-    // Return response
-    Ok(match res {
-        // Return a list of products
-        Ok(res) => response(200, json!(res).to_string()),
-        // Return an error
-        Err(err) => {
-            error!("Something went wrong: {:?}", err);
-            response(
-                500,
-                json!({ "message": format!("Something went wrong: {:?}", err) }).to_string(),
-            )
-        }
-    })
 }
