@@ -1,5 +1,5 @@
 STACK_NAME ?= rust-products
-FUNCTIONS := get-products get-product put-product delete-product
+FUNCTIONS := get-products get-product put-product delete-product dynamodb-streams
 
 ARCH := aarch64-unknown-linux-gnu
 

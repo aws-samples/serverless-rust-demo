@@ -6,22 +6,29 @@
 //! In a real application, you would probably want to add some business logic
 //! here, such as validating the data, or adding additional data to the response.
 
+pub mod entrypoints;
 mod error;
-mod product;
+pub mod event_bus;
+mod model;
 pub mod store;
 pub mod utils;
 
 pub use error::Error;
-pub use product::{Product, ProductRange};
-pub use store::{DynamoDBStore, MemoryStore, Store};
+use event_bus::EventBus;
+pub use model::{Event, Product, ProductRange};
+use store::Store;
 
 pub struct Service {
     store: Box<dyn Store + Send + Sync>,
+    event_bus: Box<dyn EventBus<E = Event> + Send + Sync>,
 }
 
 impl Service {
-    pub fn new(store: Box<dyn Store + Send + Sync>) -> Self {
-        Self { store }
+    pub fn new(
+        store: Box<dyn Store + Send + Sync>,
+        event_bus: Box<dyn EventBus<E = Event> + Send + Sync>,
+    ) -> Self {
+        Self { store, event_bus }
     }
 
     // Get a product by its ID
@@ -42,5 +49,10 @@ impl Service {
     // Delete a product
     pub async fn delete_product(&self, id: &str) -> Result<(), Error> {
         self.store.delete(id).await
+    }
+
+    // Send a batch of events
+    pub async fn send_events(&self, events: &[Event]) -> Result<(), Error> {
+        self.event_bus.send_events(events).await
     }
 }

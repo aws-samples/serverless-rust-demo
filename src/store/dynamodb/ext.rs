@@ -5,10 +5,10 @@ use aws_sdk_dynamodb::model::AttributeValue;
 use std::collections::HashMap;
 
 /// Trait to convert a Product from/to a DynamoDB item
-/// 
+///
 /// This trait adds implementations to convert a Product to/from a DynamoDB item
 /// (represented as a `HashMap<String, AttributeValue>`).
-/// 
+///
 /// There are two crates that currently provide this feature (`serde_dynamo` and
 /// `serde_dynamodb`) in a more generic way, but they are only compatible with
 /// Rusoto's DynamoDB API at the moment. Once these crates support the AWS SDK,
@@ -21,9 +21,15 @@ pub trait ProductsExt {
 impl ProductsExt for Product {
     fn from_dynamodb(value: HashMap<String, AttributeValue>) -> Result<Product, Error> {
         Ok(Product {
-            id: value.get_s("id").ok_or_else(|| Error::InternalError("Missing id"))?,
-            name: value.get_s("name").ok_or_else(|| Error::InternalError("Missing name"))?,
-            price: value.get_n("price").ok_or_else(|| Error::InternalError("Missing price"))?,
+            id: value
+                .get_s("id")
+                .ok_or(Error::InternalError("Missing id"))?,
+            name: value
+                .get_s("name")
+                .ok_or(Error::InternalError("Missing name"))?,
+            price: value
+                .get_n("price")
+                .ok_or(Error::InternalError("Missing price"))?,
         })
     }
 
@@ -55,7 +61,7 @@ impl AttributeValuesExt for HashMap<String, AttributeValue> {
     ///
     /// E.g. if you run `get_s("id")` on a DynamoDB item structured like this,
     /// you will retrieve the value `"foo"`.
-    /// 
+    ///
     /// ```json
     /// {
     ///   "id": {
@@ -64,17 +70,14 @@ impl AttributeValuesExt for HashMap<String, AttributeValue> {
     /// }
     /// ```
     fn get_s(&self, key: &str) -> Option<String> {
-        Some(self
-            .get(key)?
-            .as_s().ok()?
-            .to_owned())
+        Some(self.get(key)?.as_s().ok()?.to_owned())
     }
 
     /// Return a number from an key
-    /// 
+    ///
     /// E.g. if you run `get_n("price")` on a DynamoDB item structured like this,
     /// you will retrieve the value `10.0`.
-    /// 
+    ///
     /// ```json
     /// {
     ///  "price": {
@@ -83,10 +86,7 @@ impl AttributeValuesExt for HashMap<String, AttributeValue> {
     /// }
     /// ```
     fn get_n(&self, key: &str) -> Option<f64> {
-        self
-            .get(key)?
-            .as_n().ok()?
-            .parse::<f64>().ok()
+        self.get(key)?.as_n().ok()?.parse::<f64>().ok()
     }
 }
 

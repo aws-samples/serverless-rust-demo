@@ -1,17 +1,12 @@
 use lambda_http::{
-    ext::RequestExt,
     handler,
     lambda_runtime::{self, Context},
-    IntoResponse, Request,
+    Request,
 };
-use products::{utils::*, Service};
-use serde_json::json;
-use tracing::{error, info, instrument, warn};
-
-type E = Box<dyn std::error::Error + Send + Sync + 'static>;
+use products::{entrypoints::lambda_apigateway::delete_product, utils::*};
 
 #[tokio::main]
-async fn main() -> Result<(), E> {
+async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     // Initialize logger
     setup_tracing();
 
@@ -38,54 +33,4 @@ async fn main() -> Result<(), E> {
     }))
     .await?;
     Ok(())
-}
-
-/// Delete a product
-#[instrument(skip(service))]
-async fn delete_product(
-    service: &Service,
-    event: Request,
-    _: Context,
-) -> Result<impl IntoResponse, E> {
-    // Retrieve product ID from event
-    //
-    // If the event doesn't contain a product ID, we return a 400 Bad Request.
-    let path_parameters = event.path_parameters();
-    let id = match path_parameters.get("id") {
-        Some(id) => id,
-        None => {
-            warn!("Missing 'id' parameter in path");
-            return Ok(response(
-                400,
-                json!({ "message": "Missing 'id' parameter in path" }).to_string(),
-            ));
-        }
-    };
-
-    // Delete product
-    info!("Deleting product {}", id);
-    let res = service.delete_product(id).await;
-
-    // Return response
-    //
-    // The service returns a Result based on the success of the operation. If
-    // the operation was successful, the Result is Ok(()), otherwise it will
-    // contain an Err with the reason.
-    match res {
-        Ok(_) => {
-            info!("Product {} deleted", id);
-            Ok(response(
-                200,
-                json!({"message": "Product deleted"}).to_string(),
-            ))
-        }
-        Err(err) => {
-            // Log the error message
-            error!("Error deleting the product {}: {}", id, err);
-            Ok(response(
-                500,
-                json!({"message": "Failed to delete product"}).to_string(),
-            ))
-        }
-    }
 }
