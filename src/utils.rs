@@ -1,4 +1,4 @@
-use crate::{DynamoDBStore, EventBridgeBus, Service};
+use crate::{store, event_bus, product, Service};
 use lambda_http::Response;
 use tracing::{info, instrument};
 
@@ -23,13 +23,20 @@ pub async fn get_service() -> Service {
         "Initializing DynamoDB store with table name: {}",
         table_name
     );
-    let store = Box::new(DynamoDBStore::new(client, table_name));
+    let store = Box::new(store::DynamoDBStore::new(client, table_name));
 
-    // Initialize an EventBridge bus target
-    let client = aws_sdk_eventbridge::Client::new(&config);
-    let event_bus_name = std::env::var("EVENT_BUS_NAME").expect("EVENT_BUS_NAME must be set");
-    info!("Initializing EventBridge bus with name: {}", event_bus_name);
-    let event_bus = Box::new(EventBridgeBus::new(client, event_bus_name));
+    // Initialize an EventBridge if the environment variable is set
+    let event_bus: Box<dyn event_bus::EventBus<E = product::Event> + Sync + Send> = match std::env::var("EVENT_BUS_NAME") {
+        Ok(event_bus_name) => {
+            info!("Initializing EventBridge bus with name: {}", event_bus_name);
+            let client = aws_sdk_eventbridge::Client::new(&config);
+            Box::new(event_bus::EventBridgeBus::new(client, event_bus_name))
+        }
+        Err(_) => {
+            info!("No EventBridge bus configured");
+            Box::new(event_bus::VoidBus::new())
+        }
+    };
 
     // Return a service with the store
     Service::new(store, event_bus)

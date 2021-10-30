@@ -27,9 +27,11 @@ impl<C> EventBus for EventBridgeBus<C>
 where
     C: aws_smithy_client::bounds::SmithyConnector,
 {
+    type E = Event;
+
     /// Publish an event to the event bus.
     #[instrument(skip(self))]
-    async fn send_event(&self, event: &Event) -> Result<(), Error> {
+    async fn send_event(&self, event: &Self::E) -> Result<(), Error> {
         info!("Publishing event to EventBridge");
         self.client
             .put_events()
@@ -42,7 +44,7 @@ where
 
     /// Publish a batch of events to the event bus.
     #[instrument(skip(self))]
-    async fn send_events(&self, events: &[&Event]) -> Result<(), Error> {
+    async fn send_events(&self, events: &[&Self::E]) -> Result<(), Error> {
         // Send batches of 10 events at a time
         //
         // EventBridge has a limit of 10 events per `put_events()` request.

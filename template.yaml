@@ -13,7 +13,7 @@ Globals:
       Variables:
         RUST_LOG: info
         TABLE_NAME: !Ref Table
-        EVENT_BUS_NAME: !Ref EventBus
+        # EVENT_BUS_NAME: !Ref EventBus
 
 Resources:
   GetProductsFunction:

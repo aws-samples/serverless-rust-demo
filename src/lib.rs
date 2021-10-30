@@ -8,25 +8,25 @@
 
 pub mod entrypoints;
 mod error;
-mod event_bus;
+pub mod event_bus;
 mod product;
 mod store;
 pub mod utils;
 
 pub use error::Error;
-pub use event_bus::{EventBridgeBus, EventBus};
+use event_bus::EventBus;
 pub use product::{Event, Product, ProductRange};
-pub use store::{DynamoDBStore, MemoryStore, Store};
+use store::Store;
 
 pub struct Service {
     store: Box<dyn Store + Send + Sync>,
-    event_bus: Box<dyn EventBus + Send + Sync>,
+    event_bus: Box<dyn EventBus<E=Event> + Send + Sync>,
 }
 
 impl Service {
     pub fn new(
         store: Box<dyn Store + Send + Sync>,
-        event_bus: Box<dyn EventBus + Send + Sync>,
+        event_bus: Box<dyn EventBus<E=Event> + Send + Sync>,
     ) -> Self {
         Self { store, event_bus }
     }
