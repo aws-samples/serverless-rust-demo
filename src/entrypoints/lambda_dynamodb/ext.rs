@@ -1,8 +1,8 @@
 //! # Extension traits for DynamoDB entrypoint
-//! 
+//!
 //! This module contains extension traits for Product and Event, to transform
 //! incoming events from the Lambda function into the types used internally.
-//! 
+//!
 //! We cannot reuse the types from the `aws_sdk_dynamodb` crate because they don't
 //! implement `serde::Serialize` and `serde::Deserialize`.
 
@@ -71,14 +71,17 @@ impl EventExt for Event {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use super::super::model;
+    use super::*;
 
     #[test]
     fn test_product_from_dynamodb() {
         let mut value = HashMap::new();
         value.insert("id".to_string(), AttributeValue::S("1".to_string()));
-        value.insert("name".to_string(), AttributeValue::S("Product 1".to_string()));
+        value.insert(
+            "name".to_string(),
+            AttributeValue::S("Product 1".to_string()),
+        );
         value.insert("price".to_string(), AttributeValue::N("1.0".to_string()));
 
         let product = Product::from_dynamodb(&value).unwrap();
@@ -106,9 +109,18 @@ mod tests {
             },
             event_source_arn: "arn:aws:dynamodb:us-east-1:123456789012:table/Products/stream/2020-01-01T00:00:00.000".to_owned(),
         };
-        record.dynamodb.new_image.insert("id".to_string(), AttributeValue::S("1".to_string()));
-        record.dynamodb.new_image.insert("name".to_string(), AttributeValue::S("Product 1".to_string()));
-        record.dynamodb.new_image.insert("price".to_string(), AttributeValue::N("1.0".to_string()));
+        record
+            .dynamodb
+            .new_image
+            .insert("id".to_string(), AttributeValue::S("1".to_string()));
+        record.dynamodb.new_image.insert(
+            "name".to_string(),
+            AttributeValue::S("Product 1".to_string()),
+        );
+        record
+            .dynamodb
+            .new_image
+            .insert("price".to_string(), AttributeValue::N("1.0".to_string()));
 
         let event = Event::from_dynamodb_record(&record).unwrap();
         match event {
@@ -116,7 +128,7 @@ mod tests {
                 assert_eq!(product.id, "1");
                 assert_eq!(product.name, "Product 1");
                 assert_eq!(product.price, 1.0);
-            },
+            }
             _ => panic!("Unexpected event type"),
         }
     }
@@ -140,9 +152,18 @@ mod tests {
             },
             event_source_arn: "arn:aws:dynamodb:us-east-1:123456789012:table/Products/stream/2020-01-01T00:00:00.000".to_owned(),
         };
-        record.dynamodb.old_image.insert("id".to_string(), AttributeValue::S("1".to_string()));
-        record.dynamodb.old_image.insert("name".to_string(), AttributeValue::S("Product 1".to_string()));
-        record.dynamodb.old_image.insert("price".to_string(), AttributeValue::N("1.0".to_string()));
+        record
+            .dynamodb
+            .old_image
+            .insert("id".to_string(), AttributeValue::S("1".to_string()));
+        record.dynamodb.old_image.insert(
+            "name".to_string(),
+            AttributeValue::S("Product 1".to_string()),
+        );
+        record
+            .dynamodb
+            .old_image
+            .insert("price".to_string(), AttributeValue::N("1.0".to_string()));
 
         let event = Event::from_dynamodb_record(&record).unwrap();
         match event {
@@ -150,7 +171,7 @@ mod tests {
                 assert_eq!(product.id, "1");
                 assert_eq!(product.name, "Product 1");
                 assert_eq!(product.price, 1.0);
-            },
+            }
             _ => panic!("Unexpected event type"),
         }
     }
@@ -174,12 +195,30 @@ mod tests {
             },
             event_source_arn: "arn:aws:dynamodb:us-east-1:123456789012:table/Products/stream/2020-01-01T00:00:00.000".to_owned(),
         };
-        record.dynamodb.old_image.insert("id".to_string(), AttributeValue::S("1".to_string()));
-        record.dynamodb.old_image.insert("name".to_string(), AttributeValue::S("Product 1".to_string()));
-        record.dynamodb.old_image.insert("price".to_string(), AttributeValue::N("1.0".to_string()));
-        record.dynamodb.new_image.insert("id".to_string(), AttributeValue::S("2".to_string()));
-        record.dynamodb.new_image.insert("name".to_string(), AttributeValue::S("Product 2".to_string()));
-        record.dynamodb.new_image.insert("price".to_string(), AttributeValue::N("2.0".to_string()));
+        record
+            .dynamodb
+            .old_image
+            .insert("id".to_string(), AttributeValue::S("1".to_string()));
+        record.dynamodb.old_image.insert(
+            "name".to_string(),
+            AttributeValue::S("Product 1".to_string()),
+        );
+        record
+            .dynamodb
+            .old_image
+            .insert("price".to_string(), AttributeValue::N("1.0".to_string()));
+        record
+            .dynamodb
+            .new_image
+            .insert("id".to_string(), AttributeValue::S("2".to_string()));
+        record.dynamodb.new_image.insert(
+            "name".to_string(),
+            AttributeValue::S("Product 2".to_string()),
+        );
+        record
+            .dynamodb
+            .new_image
+            .insert("price".to_string(), AttributeValue::N("2.0".to_string()));
 
         let event = Event::from_dynamodb_record(&record).unwrap();
         match event {
@@ -190,7 +229,7 @@ mod tests {
                 assert_eq!(new.id, "2");
                 assert_eq!(new.name, "Product 2");
                 assert_eq!(new.price, 2.0);
-            },
+            }
             _ => panic!("Unexpected event type"),
         }
     }
