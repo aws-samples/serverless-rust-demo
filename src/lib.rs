@@ -7,21 +7,27 @@
 //! here, such as validating the data, or adding additional data to the response.
 
 mod error;
+mod event_bus;
 mod product;
-pub mod store;
+mod store;
 pub mod utils;
 
 pub use error::Error;
-pub use product::{Product, ProductRange};
+pub use event_bus::{EventBridgeBus, EventBus};
+pub use product::{Event, Product, ProductRange};
 pub use store::{DynamoDBStore, MemoryStore, Store};
 
 pub struct Service {
     store: Box<dyn Store + Send + Sync>,
+    event_bus: Box<dyn EventBus + Send + Sync>,
 }
 
 impl Service {
-    pub fn new(store: Box<dyn Store + Send + Sync>) -> Self {
-        Self { store }
+    pub fn new(
+        store: Box<dyn Store + Send + Sync>,
+        event_bus: Box<dyn EventBus + Send + Sync>,
+    ) -> Self {
+        Self { store, event_bus }
     }
 
     // Get a product by its ID
@@ -42,5 +48,10 @@ impl Service {
     // Delete a product
     pub async fn delete_product(&self, id: &str) -> Result<(), Error> {
         self.store.delete(id).await
+    }
+
+    // Send a batch of events
+    pub async fn send_events(&self, events: &[&Event]) -> Result<(), Error> {
+        self.event_bus.send_events(events).await
     }
 }

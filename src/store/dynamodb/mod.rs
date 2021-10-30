@@ -12,9 +12,8 @@ use tracing::{info, instrument};
 mod ext;
 use ext::{AttributeValuesExt, ProductsExt};
 
-
 /// DynamoDB store implementation.
-/// 
+///
 /// We have to pass a generic type parameter `C` for the underlying client,
 /// restricted to something that implements the SmithyConnector trait so we can
 /// use it with both the actual AWS SDK client and a mock implementation.
@@ -27,11 +26,8 @@ impl<C> DynamoDBStore<C>
 where
     C: aws_smithy_client::bounds::SmithyConnector,
 {
-    pub fn new(client: Client<C>, table_name: &str) -> DynamoDBStore<C> {
-        DynamoDBStore {
-            client,
-            table_name: table_name.to_owned(),
-        }
+    pub fn new(client: Client<C>, table_name: String) -> DynamoDBStore<C> {
+        DynamoDBStore { client, table_name }
     }
 }
 
@@ -61,9 +57,7 @@ where
                 .collect::<Result<Vec<Product>, Error>>()?,
             None => Vec::default(),
         };
-        let next = res
-            .last_evaluated_key
-            .map(|m| m.get_s("id").unwrap());
+        let next = res.last_evaluated_key.map(|m| m.get_s("id").unwrap());
         Ok(ProductRange { products, next })
     }
     /// Get item
@@ -152,7 +146,7 @@ mod tests {
                 .unwrap(),
         )]);
         let client = Client::from_conf_conn(get_mock_config().await, conn.clone());
-        let store = DynamoDBStore::new(client, "test");
+        let store = DynamoDBStore::new(client, "test".to_string());
 
         // WHEN getting all items
         let res = store.all(None).await?;
@@ -178,7 +172,7 @@ mod tests {
                 .unwrap(),
         )]);
         let client = Client::from_conf_conn(get_mock_config().await, conn.clone());
-        let store = DynamoDBStore::new(client, "test");
+        let store = DynamoDBStore::new(client, "test".to_string());
 
         // WHEN getting all items
         let res = store.all(None).await?;
@@ -213,7 +207,7 @@ mod tests {
                 .unwrap(),
         )]);
         let client = Client::from_conf_conn(get_mock_config().await, conn.clone());
-        let store = DynamoDBStore::new(client, "test");
+        let store = DynamoDBStore::new(client, "test".to_string());
 
         // WHEN getting all items
         let res = store.all(None).await?;
@@ -242,7 +236,7 @@ mod tests {
                 .unwrap(),
         )]);
         let client = Client::from_conf_conn(get_mock_config().await, conn.clone());
-        let store = DynamoDBStore::new(client, "test");
+        let store = DynamoDBStore::new(client, "test".to_string());
 
         // WHEN deleting an item
         store.delete("1").await?;
@@ -267,7 +261,7 @@ mod tests {
                 .unwrap(),
         )]);
         let client = Client::from_conf_conn(get_mock_config().await, conn.clone());
-        let store = DynamoDBStore::new(client, "test");
+        let store = DynamoDBStore::new(client, "test".to_string());
 
         // WHEN getting an item
         let res = store.get("1").await?;
@@ -300,7 +294,7 @@ mod tests {
                 .unwrap(),
         )]);
         let client = Client::from_conf_conn(get_mock_config().await, conn.clone());
-        let store = DynamoDBStore::new(client, "test");
+        let store = DynamoDBStore::new(client, "test".to_string());
         let product = Product {
             id: "1".to_string(),
             name: "test1".to_string(),
