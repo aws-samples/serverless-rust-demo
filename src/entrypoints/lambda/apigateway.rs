@@ -1,5 +1,7 @@
-use crate::{utils::response, Product, Service};
-use lambda_http::{ext::RequestExt, lambda_runtime::Context, Body, IntoResponse, Request};
+use crate::{Product, Service};
+use lambda_http::{
+    ext::RequestExt, lambda_runtime::Context, Body, IntoResponse, Request, Response,
+};
 use serde_json::json;
 use tracing::{error, info, instrument, warn};
 
@@ -213,4 +215,13 @@ pub async fn put_product(
             )
         }
     })
+}
+
+/// HTTP Response with a JSON payload
+fn response(status_code: u16, body: String) -> Response<String> {
+    Response::builder()
+        .status(status_code)
+        .header("Content-Type", "application/json")
+        .body(body)
+        .unwrap()
 }

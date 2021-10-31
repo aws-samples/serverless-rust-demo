@@ -1,2 +1,2 @@
-pub mod lambda_apigateway;
-pub mod lambda_dynamodb;
+#[cfg(feature = "lambda")]
+pub mod lambda;

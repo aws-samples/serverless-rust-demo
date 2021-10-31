@@ -237,15 +237,15 @@ mod tests {
         let event_bus = EventBridgeBus::new(client, "test-bus".to_string());
 
         // WHEN we send 15 events
-        let events = (0..15).map(|i| {
-            Event::Created {
+        let events = (0..15)
+            .map(|i| Event::Created {
                 product: Product {
                     id: format!("test-id-{}", i),
                     name: format!("test-name-{}", i),
                     price: 10.0 + i as f64,
                 },
-            }
-        }).collect::<Vec<_>>();
+            })
+            .collect::<Vec<_>>();
         event_bus.send_events(&events).await?;
 
         // THEN two requests should have been sent to EventBridge
