@@ -25,7 +25,7 @@ fn get_random_string(length: usize) -> String {
 #[tokio::test]
 async fn test_flow() -> Result<(), E> {
     let client = reqwest::Client::new();
-    let rest_api: String = env::var("REST_API").expect("REST_API not set");
+    let api_url: String = env::var("API_URL").expect("API_URL not set");
 
     let mut rng = rand::thread_rng();
 
@@ -38,7 +38,7 @@ async fn test_flow() -> Result<(), E> {
     // Put new product
     println!("PUT new product");
     let res = client
-        .put(format!("{}/{}", rest_api, product.id))
+        .put(format!("{}/{}", api_url, product.id))
         .json(&product)
         .send()
         .await?;
@@ -47,7 +47,7 @@ async fn test_flow() -> Result<(), E> {
     // Get product
     println!("GET product");
     let res = client
-        .get(format!("{}/{}", rest_api, product.id))
+        .get(format!("{}/{}", api_url, product.id))
         .send()
         .await?;
     assert_eq!(res.status(), StatusCode::OK);
@@ -58,7 +58,7 @@ async fn test_flow() -> Result<(), E> {
 
     // Get all products
     println!("GET all products");
-    let res = client.get(&rest_api).send().await?;
+    let res = client.get(&api_url).send().await?;
     assert_eq!(res.status(), StatusCode::OK);
     let res_products: ProductRange = res.json().await?;
     // At least one product should be returned
@@ -67,7 +67,7 @@ async fn test_flow() -> Result<(), E> {
     // Delete product
     println!("DELETE product");
     let res = client
-        .delete(format!("{}/{}", rest_api, product.id))
+        .delete(format!("{}/{}", api_url, product.id))
         .send()
         .await?;
     assert_eq!(res.status(), StatusCode::OK);
@@ -75,7 +75,7 @@ async fn test_flow() -> Result<(), E> {
     // Get product again
     println!("GET product again");
     let res = client
-        .get(format!("{}/{}", rest_api, product.id))
+        .get(format!("{}/{}", api_url, product.id))
         .send()
         .await?;
     assert_eq!(res.status(), StatusCode::NOT_FOUND);

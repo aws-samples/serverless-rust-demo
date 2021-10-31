@@ -13,8 +13,9 @@ This single crate will create [five different binaries](./src/bin), one for each
 ### Requirements
 
 * [Rust](https://www.rust-lang.org/)
-* [Cross](https://github.com/rust-embedded/cross)
-* The [AWS SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-install.html)
+* [Cross](https://github.com/rust-embedded/cross) for cross-compilation to Arm64
+* The [AWS SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-install.html) for deploying to the cloud
+* [Artillery](https://artillery.io/) for load-testing the application
 
 ### Usage
 
@@ -30,6 +31,9 @@ make deploy
 
 # Run integration tests against the API in the cloud
 make tests-integ
+
+# Run a load test against the API in the cloud
+make tests-load
 ```
 
 ## Security
