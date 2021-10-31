@@ -1,5 +1,4 @@
 use crate::{event_bus, model, store, Service};
-use lambda_http::Response;
 use tracing::{info, instrument};
 
 /// Setup tracing
@@ -41,13 +40,4 @@ pub async fn get_service() -> Service {
 
     // Return a service with the store
     Service::new(store, event_bus)
-}
-
-/// HTTP Response with a JSON payload
-pub fn response(status_code: u16, body: String) -> Response<String> {
-    Response::builder()
-        .status(status_code)
-        .header("Content-Type", "application/json")
-        .body(body)
-        .unwrap()
 }

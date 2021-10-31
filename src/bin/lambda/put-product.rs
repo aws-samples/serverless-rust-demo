@@ -3,7 +3,7 @@ use lambda_http::{
     lambda_runtime::{self, Context},
     Request,
 };
-use products::{entrypoints::lambda_apigateway::put_product, utils::*};
+use products::{entrypoints::lambda::apigateway::put_product, utils::*};
 
 type E = Box<dyn std::error::Error + Send + Sync + 'static>;
 
