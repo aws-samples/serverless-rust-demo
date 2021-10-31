@@ -28,6 +28,11 @@ tests-unit:
 	cargo test --lib --bins
 
 tests-integ:
-	RUST_BACKTRACE=1 REST_API=$$(aws cloudformation describe-stacks --stack-name $(STACK_NAME) \
+	RUST_BACKTRACE=1 API_URL=$$(aws cloudformation describe-stacks --stack-name $(STACK_NAME) \
 		--query 'Stacks[0].Outputs[?OutputKey==`ApiUrl`].OutputValue' \
-		--output text) cargo test 
+		--output text) cargo test
+
+tests-load:
+	API_URL=$$(aws cloudformation describe-stacks --stack-name $(STACK_NAME) \
+		--query 'Stacks[0].Outputs[?OutputKey==`ApiUrl`].OutputValue' \
+		--output text) artillery run tests/load-test.yml
