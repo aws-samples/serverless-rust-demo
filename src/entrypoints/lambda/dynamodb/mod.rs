@@ -10,7 +10,8 @@ use ext::EventExt;
 
 type E = Box<dyn std::error::Error + Sync + Send + 'static>;
 
-#[instrument(skip(service))]
+/// Parse events from DynamoDB Streams
+#[instrument(skip(service, event))]
 pub async fn parse_events(
     service: &Service,
     event: model::DynamoDBEvent,
