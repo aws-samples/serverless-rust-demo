@@ -41,7 +41,7 @@ where
     async fn all(&self, next: Option<&str>) -> Result<ProductRange, Error> {
         // Scan DynamoDB table
         info!("Scanning DynamoDB table");
-        let mut req = self.client.scan().table_name(&self.table_name);
+        let mut req = self.client.scan().table_name(&self.table_name).limit(20);
         req = if let Some(next) = next {
             req.exclusive_start_key("id", AttributeValue::S(next.to_owned()))
         } else {
@@ -138,7 +138,7 @@ mod tests {
         let conn = TestConnection::new(vec![(
             get_request_builder()
                 .header("x-amz-target", "DynamoDB_20120810.Scan")
-                .body(SdkBody::from(r#"{"TableName": "test"}"#))
+                .body(SdkBody::from(r#"{"TableName":"test","Limit":20}"#))
                 .unwrap(),
             http::Response::builder()
                 .status(200)
@@ -165,7 +165,7 @@ mod tests {
         let conn = TestConnection::new(vec![(
             get_request_builder()
                 .header("x-amz-target", "DynamoDB_20120810.Scan")
-                .body(SdkBody::from(r#"{"TableName": "test"}"#)).unwrap(),
+                .body(SdkBody::from(r#"{"TableName":"test","Limit":20}"#)).unwrap(),
             http::Response::builder()
                 .status(200)
                 .body(SdkBody::from(r#"{"Items": [{"id": {"S": "1"}, "name": {"S": "test1"}, "price": {"N": "1.0"}}]}"#))
@@ -197,7 +197,7 @@ mod tests {
         let conn = TestConnection::new(vec![(
             get_request_builder()
                 .header("x-amz-target", "DynamoDB_20120810.Scan")
-                .body(SdkBody::from(r#"{"TableName": "test"}"#))
+                .body(SdkBody::from(r#"{"TableName":"test","Limit":20}"#))
                 .unwrap(),
             http::Response::builder()
                 .status(200)
