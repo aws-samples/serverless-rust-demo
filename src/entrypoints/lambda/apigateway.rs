@@ -1,4 +1,4 @@
-use crate::{Product, Service};
+use crate::{Product, Service, utils::inject_lambda_context};
 use lambda_http::{
     ext::RequestExt, lambda_runtime::Context, Body, IntoResponse, Request, Response,
 };
@@ -12,8 +12,11 @@ type E = Box<dyn std::error::Error + Sync + Send + 'static>;
 pub async fn delete_product(
     service: &Service,
     event: Request,
-    _: Context,
+    ctx: Context,
 ) -> Result<impl IntoResponse, E> {
+    let span = inject_lambda_context(&ctx);
+    let _guard = span.enter();
+
     // Retrieve product ID from event
     //
     // If the event doesn't contain a product ID, we return a 400 Bad Request.
@@ -62,8 +65,11 @@ pub async fn delete_product(
 pub async fn get_product(
     service: &Service,
     event: Request,
-    _: Context,
+    ctx: Context,
 ) -> Result<impl IntoResponse, E> {
+    let span = inject_lambda_context(&ctx);
+    let _guard = span.enter();
+
     // Retrieve product ID from event.
     //
     // If the event doesn't contain a product ID, we return a 400 Bad Request.
@@ -112,8 +118,11 @@ pub async fn get_product(
 pub async fn get_products(
     service: &Service,
     _event: Request,
-    _: Context,
+    ctx: Context,
 ) -> Result<impl IntoResponse, E> {
+    let span = inject_lambda_context(&ctx);
+    let _guard = span.enter();
+
     // Retrieve products
     // TODO: Add pagination
     let res = service.get_products(None).await;
@@ -138,8 +147,11 @@ pub async fn get_products(
 pub async fn put_product(
     service: &Service,
     event: Request,
-    _: Context,
+    ctx: Context,
 ) -> Result<impl IntoResponse, E> {
+    let span = inject_lambda_context(&ctx);
+    let _guard = span.enter();
+
     // Retrieve product ID from event.
     //
     // If the event doesn't contain a product ID, we return a 400 Bad Request.

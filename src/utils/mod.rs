@@ -2,7 +2,7 @@ use crate::{event_bus, model, store, Service};
 use tracing::{info, instrument};
 
 mod trace;
-pub use trace::setup_tracing;
+pub use trace::{inject_lambda_context, setup_tracing};
 
 /// Retrieve a service
 ///

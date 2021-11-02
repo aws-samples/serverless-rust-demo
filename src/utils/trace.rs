@@ -10,6 +10,12 @@ pub fn setup_tracing() {
     tracing_subscriber::registry().with(layer).init();
 }
 
+pub fn inject_lambda_context(ctx: &Context) -> tracing::Span {
+    let ctx_string = serde_json::to_string(ctx).unwrap();
+    let ctx_str = ctx_string.as_str();
+    tracing::span!(tracing::Level::TRACE, "lambda_handler", lambda_context = ctx_str)
+}
+
 struct LambdaVisitor<'a> {
     pub data: &'a mut BTreeMap<String, serde_json::Value>,
 }
@@ -81,7 +87,6 @@ where
         let mut visitor = LambdaContextVisitor { context: None };
         attrs.record(&mut visitor);
         if let Some(context) = visitor.context {
-            println!("INJECTING CONTEXT: {:?}", context);
             let span = ctx.span(id).unwrap();
             let mut extensions = span.extensions_mut();
             extensions.insert(context);
@@ -100,64 +105,52 @@ where
             .from_root()
             .map(|span| {
                 if let Some(v) = span.extensions().get::<Context>() {
-                    println!("FOUND CONTEXT: {:?}", v);
                     Some(v.clone())
                 } else {
                     None
                 }
             })
-            .filter(Option::is_some)
+            .filter_map(|c| c)
             .collect::<Vec<_>>()
         } else {
-            println!("EVENT_SCOPE NOT FOUND");
-            vec![]
+            Default::default()
         };
-        let lambda_ctx = lambda_ctxs.first().unwrap();
+        let lambda_ctx = lambda_ctxs.first();
 
         let mut data = BTreeMap::new();
         let mut visitor = LambdaVisitor { data: &mut data };
         event.record(&mut visitor);
 
-        let output = if let Some(lambda_ctx) = lambda_ctx {
-            // Lambda context found
-            //
-            // Adding keys based on the Lambda context
-            serde_json::json!({
-                "level": metadata.level().to_string(),
-                "location": format!("{}:{}", metadata.file().unwrap_or("UNKNOWN"), metadata.line().unwrap_or(0)),
-                "target": metadata.target(),
-                // If data has only one key named 'message', we can just use that as the message.
-                // This is the default key when using macros such as `info!()` or `debug!()`.
-                "message": if data.len() == 1 && data.contains_key("message") {
-                    data.remove("message").unwrap().into()
-                } else {
-                    serde_json::to_value(data).unwrap()
-                },
-                "timestamp": Utc::now().to_rfc3339(),
+        let output = serde_json::json!({
+            "level": metadata.level().to_string(),
+            "location": format!("{}:{}", metadata.file().unwrap_or("UNKNOWN"), metadata.line().unwrap_or(0)),
+            "target": metadata.target(),
+            // If data has only one key named 'message', we can just use that as the message.
+            // This is the default key when using macros such as `info!()` or `debug!()`.
+            "message": if data.len() == 1 && data.contains_key("message") {
+                data.remove("message").unwrap().into()
+            } else {
+                serde_json::to_value(data).unwrap()
+            },
+            "timestamp": Utc::now().to_rfc3339(),
+        });
 
-                // Lambda context keys
-                "function_name": lambda_ctx.env_config.function_name,
-                "function_memory_size": lambda_ctx.env_config.memory,
-                "function_arn": lambda_ctx.invoked_function_arn,
-                "function_request_id": lambda_ctx.request_id,
-                "xray_trace_id": lambda_ctx.xray_trace_id,
-            })
+        let output = if let Some(lambda_ctx) = lambda_ctx {
+            if let serde_json::Value::Object(mut output) = output {
+                output.insert("function_name".to_string(), lambda_ctx.env_config.function_name.clone().into());
+                output.insert("function_memory_size".to_string(), lambda_ctx.env_config.memory.into());
+                output.insert("function_arn".to_string(), lambda_ctx.invoked_function_arn.clone().into());
+                output.insert("function_request_id".to_string(), lambda_ctx.request_id.clone().into());
+                output.insert("xray_trace_id".to_string(), lambda_ctx.xray_trace_id.clone().into());
+
+                serde_json::Value::Object(output)
+            } else {
+                output
+            }
         } else {
-            // No Lambda context found
-            serde_json::json!({
-                "level": metadata.level().to_string(),
-                "location": format!("{}:{}", metadata.file().unwrap_or("UNKNOWN"), metadata.line().unwrap_or(0)),
-                "target": metadata.target(),
-                // If data has only one key named 'message', we can just use that as the message.
-                // This is the default key when using macros such as `info!()` or `debug!()`.
-                "message": if data.len() == 1 && data.contains_key("message") {
-                    data.remove("message").unwrap().into()
-                } else {
-                    serde_json::to_value(data).unwrap()
-                },
-                "timestamp": Utc::now().to_rfc3339(),
-            })
+            output
         };
+
         println!("{}", serde_json::to_string(&output).unwrap());
     }
 }
