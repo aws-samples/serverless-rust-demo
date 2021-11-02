@@ -1,11 +1,8 @@
 use crate::{event_bus, model, store, Service};
 use tracing::{info, instrument};
 
-/// Setup tracing
-pub fn setup_tracing() {
-    let subscriber = tracing_subscriber::fmt().json().finish();
-    tracing::subscriber::set_global_default(subscriber).expect("failed to set tracing subscriber");
-}
+mod trace;
+pub use trace::{inject_lambda_context, setup_tracing};
 
 /// Retrieve a service
 ///
