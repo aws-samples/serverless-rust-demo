@@ -29,6 +29,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>
     // which matches the signature of the lambda function.
     // See https://github.com/rust-lang/rust/issues/62290
     lambda_runtime::run(handler(|event: Request, ctx: Context| {
+        let ctx_string = serde_json::to_string(&ctx).unwrap();
+        let ctx_str = ctx_string.as_str();
+        let span = tracing::span!(tracing::Level::TRACE, "lambda_handler", lambda_context = ctx_str);
+        let _guard = span.enter();
+
         delete_product(&service, event, ctx)
     }))
     .await?;
