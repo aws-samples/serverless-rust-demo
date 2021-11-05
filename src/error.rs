@@ -41,6 +41,6 @@ where
     E: error::Error,
 {
     fn from(value: SdkError<E>) -> Error {
-        Error::SdkError(format!("AWS Failure: {:?}", value))
+        Error::SdkError(format!("{}", value))
     }
 }

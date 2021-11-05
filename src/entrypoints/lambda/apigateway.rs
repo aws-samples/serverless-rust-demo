@@ -1,4 +1,4 @@
-use crate::{Product, Service};
+use crate::{Product, CrudService};
 use lambda_http::{
     ext::RequestExt, lambda_runtime::Context, Body, IntoResponse, Request, Response,
 };
@@ -10,7 +10,7 @@ type E = Box<dyn std::error::Error + Sync + Send + 'static>;
 /// Delete a product
 #[instrument(skip(service))]
 pub async fn delete_product(
-    service: &Service,
+    service: &CrudService,
     event: Request,
     _: Context,
 ) -> Result<impl IntoResponse, E> {
@@ -60,7 +60,7 @@ pub async fn delete_product(
 /// Get a product
 #[instrument(skip(service))]
 pub async fn get_product(
-    service: &Service,
+    service: &CrudService,
     event: Request,
     _: Context,
 ) -> Result<impl IntoResponse, E> {
@@ -110,7 +110,7 @@ pub async fn get_product(
 /// Retrieve products
 #[instrument(skip(service))]
 pub async fn get_products(
-    service: &Service,
+    service: &CrudService,
     _event: Request,
     _: Context,
 ) -> Result<impl IntoResponse, E> {
@@ -136,7 +136,7 @@ pub async fn get_products(
 /// Put a product
 #[instrument(skip(service))]
 pub async fn put_product(
-    service: &Service,
+    service: &CrudService,
     event: Request,
     _: Context,
 ) -> Result<impl IntoResponse, E> {

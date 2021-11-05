@@ -13,7 +13,7 @@ async fn main() -> Result<(), E> {
     setup_tracing();
 
     // Initialize service
-    let service = get_service().await;
+    let service = get_crud_service().await;
 
     // Run the Lambda function
     //

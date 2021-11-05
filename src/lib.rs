@@ -1,10 +1,4 @@
 //! # Domain logic for the service
-//!
-//! Since this only fetches and return data from DynamoDB, the functions here
-//! are very simple. They just fetch the data from the store and return it.
-//!
-//! In a real application, you would probably want to add some business logic
-//! here, such as validating the data, or adding additional data to the response.
 
 pub mod entrypoints;
 mod error;
@@ -18,17 +12,24 @@ use event_bus::EventBus;
 pub use model::{Event, Product, ProductRange};
 use store::Store;
 
-pub struct Service {
+/// CRUD Service
+/// 
+/// This service handles CRUD operations for products.
+/// 
+/// Since this only fetches and return data from DynamoDB, the functions here
+/// are very simple. They just fetch the data from the store and return it.
+/// 
+/// In a real application, you would probably want to add some business logic
+/// here, such as validating the data, or adding additional data to the response.
+pub struct CrudService {
     store: Box<dyn Store + Send + Sync>,
-    event_bus: Box<dyn EventBus<E = Event> + Send + Sync>,
 }
 
-impl Service {
+impl CrudService {
     pub fn new(
         store: Box<dyn Store + Send + Sync>,
-        event_bus: Box<dyn EventBus<E = Event> + Send + Sync>,
     ) -> Self {
-        Self { store, event_bus }
+        Self { store }
     }
 
     // Get a product by its ID
@@ -49,6 +50,22 @@ impl Service {
     // Delete a product
     pub async fn delete_product(&self, id: &str) -> Result<(), Error> {
         self.store.delete(id).await
+    }
+}
+
+
+/// Event Service
+/// 
+/// This service takes events and publishes them to the event bus.
+pub struct EventService {
+    event_bus: Box<dyn EventBus<E = Event> + Send + Sync>,
+}
+
+impl EventService {
+    pub fn new(
+        event_bus: Box<dyn EventBus<E = Event> + Send + Sync>,
+    ) -> Self {
+        Self { event_bus }
     }
 
     // Send a batch of events
