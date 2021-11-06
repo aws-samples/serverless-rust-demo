@@ -1,4 +1,4 @@
-use crate::{event_bus, model, store, Service};
+use crate::{event_bus, model, store, CrudService, EventService};
 use tracing::{info, instrument};
 
 /// Setup tracing
@@ -7,11 +7,9 @@ pub fn setup_tracing() {
     tracing::subscriber::set_global_default(subscriber).expect("failed to set tracing subscriber");
 }
 
-/// Retrieve a service
-///
-/// This is pre-configured to configure a service with DynamoDB store as backend.
+/// Create a CRUD service
 #[instrument]
-pub async fn get_service() -> Service {
+pub async fn get_crud_service() -> CrudService {
     // Get AWS Configuration
     let config = aws_config::load_from_env().await;
 
@@ -23,6 +21,15 @@ pub async fn get_service() -> Service {
         table_name
     );
     let store = Box::new(store::DynamoDBStore::new(client, table_name));
+
+    return CrudService::new(store);
+}
+
+/// Create an event service
+#[instrument]
+pub async fn get_event_service() -> EventService {
+    // Get AWS Configuration
+    let config = aws_config::load_from_env().await;
 
     // Initialize an EventBridge if the environment variable is set
     let event_bus: Box<dyn event_bus::EventBus<E = model::Event> + Sync + Send> =
@@ -38,6 +45,5 @@ pub async fn get_service() -> Service {
             }
         };
 
-    // Return a service with the store
-    Service::new(store, event_bus)
+    return EventService::new(event_bus);
 }

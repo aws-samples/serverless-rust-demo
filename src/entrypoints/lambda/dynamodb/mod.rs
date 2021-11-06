@@ -1,4 +1,4 @@
-use crate::{Event, Service};
+use crate::{Event, EventService};
 use lambda_runtime::Context;
 use rayon::prelude::*;
 use tracing::{info, instrument};
@@ -13,7 +13,7 @@ type E = Box<dyn std::error::Error + Sync + Send + 'static>;
 /// Parse events from DynamoDB Streams
 #[instrument(skip(service, event))]
 pub async fn parse_events(
-    service: &Service,
+    service: &EventService,
     event: model::DynamoDBEvent,
     _: Context,
 ) -> Result<(), E> {

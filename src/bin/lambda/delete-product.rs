@@ -11,7 +11,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>
     setup_tracing();
 
     // Initialize service
-    let service = get_service().await;
+    let service = get_crud_service().await;
 
     // Run the Lambda function
     //
