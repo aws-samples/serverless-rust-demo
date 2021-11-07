@@ -128,36 +128,35 @@ where
     }
 }
 
-impl Into<HashMap<String, AttributeValue>> for &Product {
+impl From<&Product> for HashMap<String, AttributeValue> {
     /// Convert a &Product into a DynamoDB item
-    fn into(self) -> HashMap<String, AttributeValue> {
+    fn from(value: &Product) -> HashMap<String, AttributeValue> {
         let mut retval = HashMap::new();
-        retval.insert("id".to_owned(), AttributeValue::S(self.id.clone()));
-        retval.insert("name".to_owned(), AttributeValue::S(self.name.clone()));
+        retval.insert("id".to_owned(), AttributeValue::S(value.id.clone()));
+        retval.insert("name".to_owned(), AttributeValue::S(value.name.clone()));
         retval.insert(
             "price".to_owned(),
-            AttributeValue::N(format!("{:}", self.price)),
+            AttributeValue::N(format!("{:}", value.price)),
         );
 
         retval
     }
 }
-
-impl TryInto<Product> for HashMap<String, AttributeValue> {
+impl TryFrom<HashMap<String, AttributeValue>> for Product {
     type Error = Error;
 
     /// Try to convert a DynamoDB item into a Product
     /// 
     /// This could fail as the DynamoDB item might be missing some fields.
-    fn try_into(self) -> Result<Product, Self::Error> {
+    fn try_from(value: HashMap<String, AttributeValue>) -> Result<Self, Self::Error> {
         Ok(Product {
-            id: self
+            id: value
                 .get_s("id")
                 .ok_or(Error::InternalError("Missing id"))?,
-            name: self
+            name: value
                 .get_s("name")
                 .ok_or(Error::InternalError("Missing name"))?,
-            price: self
+            price: value
                 .get_n("price")
                 .ok_or(Error::InternalError("Missing price"))?,
         })
@@ -376,7 +375,7 @@ mod tests {
         value.insert("name".to_owned(), AttributeValue::S("name".to_owned()));
         value.insert("price".to_owned(), AttributeValue::N("1.0".to_owned()));
 
-        let product: Product = value.try_into().unwrap();
+        let product = Product::try_from(value).unwrap();
         assert_eq!(product.id, "id");
         assert_eq!(product.name, "name");
         assert_eq!(product.price, 1.0);
