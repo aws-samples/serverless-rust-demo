@@ -10,7 +10,7 @@ use std::collections::HashMap;
 use tracing::{info, instrument};
 
 mod ext;
-use ext::{AttributeValuesExt};
+use ext::AttributeValuesExt;
 
 /// DynamoDB store implementation.
 ///
@@ -146,7 +146,7 @@ impl TryFrom<HashMap<String, AttributeValue>> for Product {
     type Error = Error;
 
     /// Try to convert a DynamoDB item into a Product
-    /// 
+    ///
     /// This could fail as the DynamoDB item might be missing some fields.
     fn try_from(value: HashMap<String, AttributeValue>) -> Result<Self, Self::Error> {
         Ok(Product {

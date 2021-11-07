@@ -175,7 +175,7 @@ pub async fn put_product(
                 400,
                 json!({"message": "Failed to parse product from request body"}).to_string(),
             ));
-        },
+        }
     };
     info!("Parsed product: {:?}", product);
 

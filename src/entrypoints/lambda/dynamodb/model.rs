@@ -5,6 +5,7 @@
 //! We cannot use the models provided by the AWS SDK for Rust, as they do not
 //! implement the `serde::Serialize` and `serde::Deserialize` traits.
 
+use crate::{model::{Product, Event}, Error};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -36,6 +37,30 @@ pub struct DynamoDBRecord {
 
     #[serde(rename = "eventVersion")]
     pub event_version: String,
+}
+
+impl TryFrom<&DynamoDBRecord> for Event {
+    type Error = Error;
+
+    /// Try converting a DynamoDB record to an event.
+    fn try_from(value: &DynamoDBRecord) -> Result<Self, Self::Error> {
+        match value.event_name.as_str() {
+            "INSERT" => {
+                let product = (&value.dynamodb.new_image).try_into()?;
+                Ok(Event::Created { product })
+            }
+            "MODIFY" => {
+                let old = (&value.dynamodb.old_image).try_into()?;
+                let new = (&value.dynamodb.new_image).try_into()?;
+                Ok(Event::Updated { old, new })
+            }
+            "REMOVE" => {
+                let product = (&value.dynamodb.old_image).try_into()?;
+                Ok(Event::Deleted { product })
+            }
+            _ => Err(Error::InternalError("Unknown event type")),
+        }
+    }
 }
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -132,13 +157,40 @@ impl AttributeValue {
     }
 }
 
+impl TryFrom<&HashMap<String, AttributeValue>> for Product {
+    type Error = Error;
+
+    /// Try to convert a DynamoDB item into a Product
+    ///
+    /// This could fail as the DynamoDB item might be missing some fields.
+    fn try_from(value: &HashMap<String, AttributeValue>) -> Result<Self, Self::Error> {
+        Ok(Product {
+            id: value
+                .get("Id")
+                .ok_or(Error::InternalError("Missing id"))?
+                .as_s()
+                .ok_or(Error::InternalError("id is not a string"))?
+                .to_string(),
+            name: value
+                .get("Name")
+                .ok_or(Error::InternalError("Missing name"))?
+                .as_s()
+                .ok_or(Error::InternalError("name is not a string"))?
+                .to_string(),
+            price: value
+                .get("Price")
+                .ok_or(Error::InternalError("Missing price"))?
+                .as_n()
+                .ok_or(Error::InternalError("price is not a number"))?,
+        })
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    #[test]
-    fn test_deserialize() {
-        // Example from https://docs.aws.amazon.com/lambda/latest/dg/with-ddb.html
+    fn get_ddb_event() -> DynamoDBEvent {
         let data = r#"
         {
             "Records": [
@@ -148,15 +200,18 @@ mod tests {
                 "dynamodb": {
                   "Keys": {
                     "Id": {
-                      "N": "101"
+                      "S": "101"
                     }
                   },
                   "NewImage": {
-                    "Message": {
-                      "S": "New item!"
-                    },
                     "Id": {
-                      "N": "101"
+                        "S": "101"
+                    },
+                    "Name": {
+                      "S": "new-item"
+                    },
+                    "Price": {
+                      "N": "10.5"
                     }
                   },
                   "StreamViewType": "NEW_AND_OLD_IMAGES",
@@ -173,26 +228,32 @@ mod tests {
                 "eventVersion": "1.0",
                 "dynamodb": {
                   "OldImage": {
-                    "Message": {
-                      "S": "New item!"
-                    },
                     "Id": {
-                      "N": "101"
+                      "S": "102"
+                    },
+                    "Name": {
+                      "S": "new-item2"
+                    },
+                    "Price": {
+                      "N": "20.5"
                     }
                   },
                   "SequenceNumber": "222",
                   "Keys": {
                     "Id": {
-                      "N": "101"
+                      "S": "102"
                     }
                   },
                   "SizeBytes": 59,
                   "NewImage": {
-                    "Message": {
-                      "S": "This item has changed"
-                    },
                     "Id": {
-                      "N": "101"
+                        "S": "102"
+                    },
+                    "Name": {
+                      "S": "new-item2"
+                    },
+                    "Price": {
+                      "N": "30.5"
                     }
                   },
                   "StreamViewType": "NEW_AND_OLD_IMAGES"
@@ -206,26 +267,76 @@ mod tests {
 
         let event: DynamoDBEvent = serde_json::from_str(data).unwrap();
 
+        event
+    }
+
+    #[test]
+    fn test_deserialize() {
+        let event = get_ddb_event();
+
         assert_eq!(event.records.len(), 2);
         assert_eq!(event.records[0].event_name, "INSERT");
         assert_eq!(
             event.records[0]
                 .dynamodb
                 .new_image
-                .get("Message")
+                .get("Name")
                 .unwrap()
                 .as_s(),
-            Some("New item!")
+            Some("new-item")
         );
         assert_eq!(event.records[1].event_name, "MODIFY");
         assert_eq!(
             event.records[1]
                 .dynamodb
                 .old_image
-                .get("Message")
+                .get("Name")
                 .unwrap()
                 .as_s(),
-            Some("New item!")
+            Some("new-item2")
         );
+    }
+
+    #[test]
+    fn test_dynamodb_into_event() {
+        let ddb_event = get_ddb_event();
+
+        let events = ddb_event.records.iter().map(|r| r.try_into()).collect::<Result<Vec<Event>, _>>().unwrap();
+
+        assert_eq!(events.len(), 2);
+        match &events[0] {
+            Event::Created { product } => {
+                assert_eq!(product.id, "101");
+                assert_eq!(product.name, "new-item");
+                assert_eq!(product.price, 10.5);
+            },
+            _ => {
+                assert!(false)
+            },
+        };
+        match &events[1] {
+            Event::Updated { new, old } => {
+                assert_eq!(new.id, "102");
+                assert_eq!(new.name, "new-item2");
+                assert_eq!(new.price, 30.5);
+                assert_eq!(old.id, "102");
+                assert_eq!(old.name, "new-item2");
+                assert_eq!(old.price, 20.5);
+            },
+            _ => {
+                assert!(false)
+            },
+        };
+    }
+
+    #[test]
+    fn test_dynamodb_into_product() {
+        let ddb_event = get_ddb_event();
+
+        let product: Product = (&ddb_event.records[0].dynamodb.new_image).try_into().unwrap();
+
+        assert_eq!(product.id, "101");
+        assert_eq!(product.name, "new-item");
+        assert_eq!(product.price, 10.5);
     }
 }
