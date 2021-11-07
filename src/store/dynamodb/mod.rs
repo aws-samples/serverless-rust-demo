@@ -2,7 +2,7 @@
 //!
 //! Store implementation using the AWS SDK for DynamoDB.
 
-use super::Store;
+use super::{Store, StoreDelete, StoreGet, StoreGetAll, StorePut};
 use crate::{Error, Product, ProductRange};
 use async_trait::async_trait;
 use aws_sdk_dynamodb::{model::AttributeValue, Client};
@@ -31,8 +31,10 @@ where
     }
 }
 
+impl<C> Store for DynamoDBStore<C> where C: aws_smithy_client::bounds::SmithyConnector {}
+
 #[async_trait]
-impl<C> Store for DynamoDBStore<C>
+impl<C> StoreGetAll for DynamoDBStore<C>
 where
     C: aws_smithy_client::bounds::SmithyConnector,
 {
@@ -60,6 +62,13 @@ where
         let next = res.last_evaluated_key.map(|m| m.get_s("id").unwrap());
         Ok(ProductRange { products, next })
     }
+}
+
+#[async_trait]
+impl<C> StoreGet for DynamoDBStore<C>
+where
+    C: aws_smithy_client::bounds::SmithyConnector,
+{
     /// Get item
     #[instrument(skip(self))]
     async fn get(&self, id: &str) -> Result<Option<Product>, Error> {
@@ -77,6 +86,13 @@ where
             None => None,
         })
     }
+}
+
+#[async_trait]
+impl<C> StorePut for DynamoDBStore<C>
+where
+    C: aws_smithy_client::bounds::SmithyConnector,
+{
     /// Create or update an item
     #[instrument(skip(self))]
     async fn put(&self, product: &Product) -> Result<(), Error> {
@@ -90,6 +106,13 @@ where
 
         Ok(())
     }
+}
+
+#[async_trait]
+impl<C> StoreDelete for DynamoDBStore<C>
+where
+    C: aws_smithy_client::bounds::SmithyConnector,
+{
     /// Delete item
     #[instrument(skip(self))]
     async fn delete(&self, id: &str) -> Result<(), Error> {
