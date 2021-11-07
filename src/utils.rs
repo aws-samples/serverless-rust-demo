@@ -1,4 +1,4 @@
-use crate::{event_bus, model, store, CrudService, EventService};
+use crate::{event_bus, store};
 use tracing::{info, instrument};
 
 /// Setup tracing
@@ -7,43 +7,31 @@ pub fn setup_tracing() {
     tracing::subscriber::set_global_default(subscriber).expect("failed to set tracing subscriber");
 }
 
-/// Create a CRUD service
+/// Initialize a store
 #[instrument]
-pub async fn get_crud_service() -> CrudService {
+pub async fn get_store() -> impl store::Store {
     // Get AWS Configuration
     let config = aws_config::load_from_env().await;
 
     // Initialize a DynamoDB store
-    let client = aws_sdk_dynamodb::Client::new(&config);
     let table_name = std::env::var("TABLE_NAME").expect("TABLE_NAME must be set");
     info!(
         "Initializing DynamoDB store with table name: {}",
         table_name
     );
-    let store = Box::new(store::DynamoDBStore::new(client, table_name));
-
-    return CrudService::new(store);
+    let client = aws_sdk_dynamodb::Client::new(&config);
+    store::DynamoDBStore::new(client, table_name)
 }
 
 /// Create an event service
 #[instrument]
-pub async fn get_event_service() -> EventService {
+pub async fn get_event_bus() -> impl event_bus::EventBus<E = crate::Event> {
     // Get AWS Configuration
     let config = aws_config::load_from_env().await;
 
     // Initialize an EventBridge if the environment variable is set
-    let event_bus: Box<dyn event_bus::EventBus<E = model::Event> + Sync + Send> =
-        match std::env::var("EVENT_BUS_NAME") {
-            Ok(event_bus_name) => {
-                info!("Initializing EventBridge bus with name: {}", event_bus_name);
-                let client = aws_sdk_eventbridge::Client::new(&config);
-                Box::new(event_bus::EventBridgeBus::new(client, event_bus_name))
-            }
-            Err(_) => {
-                info!("No EventBridge bus configured");
-                Box::new(event_bus::VoidBus::new())
-            }
-        };
-
-    return EventService::new(event_bus);
+    let event_bus_name = std::env::var("EVENT_BUS_NAME").expect("EVENT_BUS_NAME must be set");
+    info!("Initializing EventBridge bus with name: {}", event_bus_name);
+    let client = aws_sdk_eventbridge::Client::new(&config);
+    event_bus::EventBridgeBus::new(client, event_bus_name)
 }

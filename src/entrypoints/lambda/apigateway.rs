@@ -1,4 +1,4 @@
-use crate::{Product, CrudService};
+use crate::{domain, store, Product};
 use lambda_http::{
     ext::RequestExt, lambda_runtime::Context, Body, IntoResponse, Request, Response,
 };
@@ -8,9 +8,9 @@ use tracing::{error, info, instrument, warn};
 type E = Box<dyn std::error::Error + Sync + Send + 'static>;
 
 /// Delete a product
-#[instrument(skip(service))]
+#[instrument(skip(store))]
 pub async fn delete_product(
-    service: &CrudService,
+    store: &dyn store::StoreDelete,
     event: Request,
     _: Context,
 ) -> Result<impl IntoResponse, E> {
@@ -31,7 +31,7 @@ pub async fn delete_product(
 
     // Delete product
     info!("Deleting product {}", id);
-    let res = service.delete_product(id).await;
+    let res = domain::delete_product(store, id).await;
 
     // Return response
     //
@@ -58,9 +58,9 @@ pub async fn delete_product(
 }
 
 /// Get a product
-#[instrument(skip(service))]
+#[instrument(skip(store))]
 pub async fn get_product(
-    service: &CrudService,
+    store: &dyn store::StoreGet,
     event: Request,
     _: Context,
 ) -> Result<impl IntoResponse, E> {
@@ -81,7 +81,7 @@ pub async fn get_product(
 
     // Retrieve product
     info!("Fetching product {}", id);
-    let product = service.get_product(id).await;
+    let product = domain::get_product(store, id).await;
 
     // Return response
     //
@@ -108,15 +108,15 @@ pub async fn get_product(
 }
 
 /// Retrieve products
-#[instrument(skip(service))]
+#[instrument(skip(store))]
 pub async fn get_products(
-    service: &CrudService,
+    store: &dyn store::StoreGetAll,
     _event: Request,
     _: Context,
 ) -> Result<impl IntoResponse, E> {
     // Retrieve products
     // TODO: Add pagination
-    let res = service.get_products(None).await;
+    let res = domain::get_products(store, None).await;
 
     // Return response
     Ok(match res {
@@ -134,9 +134,9 @@ pub async fn get_products(
 }
 
 /// Put a product
-#[instrument(skip(service))]
+#[instrument(skip(store))]
 pub async fn put_product(
-    service: &CrudService,
+    store: &dyn store::StorePut,
     event: Request,
     _: Context,
 ) -> Result<impl IntoResponse, E> {
@@ -194,7 +194,7 @@ pub async fn put_product(
     }
 
     // Put product
-    let res = service.put_product(&product).await;
+    let res = domain::put_product(store, &product).await;
 
     // Return response
     //

@@ -10,8 +10,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>
     // Initialize logger
     setup_tracing();
 
-    // Initialize service
-    let service = get_crud_service().await;
+    // Initialize store
+    let store = get_store().await;
 
     // Run the Lambda function
     //
@@ -22,14 +22,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>
     //
     // This uses a closure to pass the Service without having to reinstantiate
     // it for every call. This is a bit of a hack, but it's the only way to
-    // pass a service to a lambda function.
+    // pass a store to a lambda function.
     //
     // Furthermore, we don't await the result of `delete_product` because
     // async closures aren't stable yet. This way, the closure returns a Future,
     // which matches the signature of the lambda function.
     // See https://github.com/rust-lang/rust/issues/62290
     lambda_runtime::run(handler(|event: Request, ctx: Context| {
-        delete_product(&service, event, ctx)
+        delete_product(&store, event, ctx)
     }))
     .await?;
     Ok(())

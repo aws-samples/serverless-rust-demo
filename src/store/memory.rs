@@ -4,7 +4,7 @@
 //! used in production, but rather as a simple implementation for local
 //! testing purposes.
 
-use super::Store;
+use super::{Store, StoreDelete, StoreGet, StoreGetAll, StorePut};
 use crate::{Error, Product, ProductRange};
 use async_trait::async_trait;
 use std::collections::HashMap;
@@ -21,8 +21,10 @@ impl MemoryStore {
     }
 }
 
+impl Store for MemoryStore {}
+
 #[async_trait]
-impl Store for MemoryStore {
+impl StoreGetAll for MemoryStore {
     async fn all(&self, _: Option<&str>) -> Result<ProductRange, Error> {
         Ok(ProductRange {
             products: self
@@ -35,11 +37,17 @@ impl Store for MemoryStore {
             next: None,
         })
     }
+}
 
+#[async_trait]
+impl StoreGet for MemoryStore {
     async fn get(&self, id: &str) -> Result<Option<Product>, Error> {
         Ok(self.data.read().unwrap().get(id).cloned())
     }
+}
 
+#[async_trait]
+impl StorePut for MemoryStore {
     async fn put(&self, product: &Product) -> Result<(), Error> {
         self.data
             .write()
@@ -47,7 +55,10 @@ impl Store for MemoryStore {
             .insert(product.id.clone(), product.clone());
         Ok(())
     }
+}
 
+#[async_trait]
+impl StoreDelete for MemoryStore {
     async fn delete(&self, id: &str) -> Result<(), Error> {
         self.data.write().unwrap().remove(id);
         Ok(())
@@ -57,7 +68,7 @@ impl Store for MemoryStore {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{Error, Store};
+    use crate::Error;
 
     struct ConstProduct<'a> {
         id: &'a str,
