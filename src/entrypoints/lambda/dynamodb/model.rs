@@ -5,7 +5,10 @@
 //! We cannot use the models provided by the AWS SDK for Rust, as they do not
 //! implement the `serde::Serialize` and `serde::Deserialize` traits.
 
-use crate::{model::{Product, Event}, Error};
+use crate::{
+    model::{Event, Product},
+    Error,
+};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -301,7 +304,12 @@ mod tests {
     fn test_dynamodb_into_event() {
         let ddb_event = get_ddb_event();
 
-        let events = ddb_event.records.iter().map(|r| r.try_into()).collect::<Result<Vec<Event>, _>>().unwrap();
+        let events = ddb_event
+            .records
+            .iter()
+            .map(|r| r.try_into())
+            .collect::<Result<Vec<Event>, _>>()
+            .unwrap();
 
         assert_eq!(events.len(), 2);
         match &events[0] {
@@ -309,10 +317,10 @@ mod tests {
                 assert_eq!(product.id, "101");
                 assert_eq!(product.name, "new-item");
                 assert_eq!(product.price, 10.5);
-            },
+            }
             _ => {
                 assert!(false)
-            },
+            }
         };
         match &events[1] {
             Event::Updated { new, old } => {
@@ -322,10 +330,10 @@ mod tests {
                 assert_eq!(old.id, "102");
                 assert_eq!(old.name, "new-item2");
                 assert_eq!(old.price, 20.5);
-            },
+            }
             _ => {
                 assert!(false)
-            },
+            }
         };
     }
 
@@ -333,7 +341,9 @@ mod tests {
     fn test_dynamodb_into_product() {
         let ddb_event = get_ddb_event();
 
-        let product: Product = (&ddb_event.records[0].dynamodb.new_image).try_into().unwrap();
+        let product: Product = (&ddb_event.records[0].dynamodb.new_image)
+            .try_into()
+            .unwrap();
 
         assert_eq!(product.id, "101");
         assert_eq!(product.name, "new-item");
