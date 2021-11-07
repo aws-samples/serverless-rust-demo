@@ -155,29 +155,27 @@ pub async fn put_product(
         }
     };
 
-    // Read body from request
-    let body = match event.body() {
-        Body::Text(body) => body.to_owned(),
-        Body::Binary(body) => String::from_utf8(body.to_vec())?,
+    // Read product from request
+    let product_res: Result<Product, serde_json::Error> = match event.body() {
+        Body::Text(body) => serde_json::from_str(body),
+        Body::Binary(body) => serde_json::from_slice(body),
         _ => {
-            warn!("Request body is not a string");
+            warn!("Empty request body");
             return Ok(response(
                 400,
-                json!({"message": "Request body is not a string"}).to_string(),
+                json!({"message": "Empty request body"}).to_string(),
             ));
         }
     };
-    info!("Received product: {}", body);
-
-    // Parse product from body
-    let product: Product = if let Ok(product) = serde_json::from_str(&body) {
-        product
-    } else {
-        warn!("Failed to parse product from request body: {}", body);
-        return Ok(response(
-            400,
-            json!({"message": "Failed to parse product from request body"}).to_string(),
-        ));
+    let product = match product_res {
+        Ok(product) => product,
+        Err(err) => {
+            warn!("Failed to parse product from request body: {}", err);
+            return Ok(response(
+                400,
+                json!({"message": "Failed to parse product from request body"}).to_string(),
+            ));
+        },
     };
     info!("Parsed product: {:?}", product);
 
