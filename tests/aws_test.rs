@@ -82,3 +82,62 @@ async fn test_flow() -> Result<(), E> {
 
     Ok(())
 }
+
+#[tokio::test]
+async fn test_put_product_with_invalid_id() -> Result<(), E> {
+    let client = reqwest::Client::new();
+    let api_url: String = env::var("API_URL").expect("API_URL not set");
+
+    let product = Product {
+        id: "invalid id".to_string(),
+        name: get_random_string(16),
+        price: 0.0,
+    };
+
+    // Put new product
+    println!("PUT new product");
+    let res = client
+        .put(format!("{}/not-the-same-id", api_url))
+        .json(&product)
+        .send()
+        .await?;
+    assert_eq!(res.status(), StatusCode::BAD_REQUEST);
+    assert!(res.text().await?.contains("Product ID in path does not match product ID in body"));
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_put_product_empty() -> Result<(), E> {
+    let client = reqwest::Client::new();
+    let api_url: String = env::var("API_URL").expect("API_URL not set");
+
+    // Put new product
+    println!("PUT new product");
+    let res = client
+        .put(format!("{}/empty-id", api_url))
+        .send()
+        .await?;
+    assert_eq!(res.status(), StatusCode::BAD_REQUEST);
+    assert!(res.text().await?.contains("Empty request body"));
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_put_product_invalid_body() -> Result<(), E> {
+    let client = reqwest::Client::new();
+    let api_url: String = env::var("API_URL").expect("API_URL not set");
+
+    // Put new product
+    println!("PUT new product");
+    let res = client
+        .put(format!("{}/invalid-body", api_url))
+        .json(&"invalid body")
+        .send()
+        .await?;
+    assert_eq!(res.status(), StatusCode::BAD_REQUEST);
+    assert!(res.text().await?.contains("Failed to parse product from request body"));
+
+    Ok(())
+}
