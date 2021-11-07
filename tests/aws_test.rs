@@ -102,7 +102,10 @@ async fn test_put_product_with_invalid_id() -> Result<(), E> {
         .send()
         .await?;
     assert_eq!(res.status(), StatusCode::BAD_REQUEST);
-    assert!(res.text().await?.contains("Product ID in path does not match product ID in body"));
+    assert!(res
+        .text()
+        .await?
+        .contains("Product ID in path does not match product ID in body"));
 
     Ok(())
 }
@@ -114,10 +117,7 @@ async fn test_put_product_empty() -> Result<(), E> {
 
     // Put new product
     println!("PUT new product");
-    let res = client
-        .put(format!("{}/empty-id", api_url))
-        .send()
-        .await?;
+    let res = client.put(format!("{}/empty-id", api_url)).send().await?;
     assert_eq!(res.status(), StatusCode::BAD_REQUEST);
     assert!(res.text().await?.contains("Empty request body"));
 
@@ -137,7 +137,10 @@ async fn test_put_product_invalid_body() -> Result<(), E> {
         .send()
         .await?;
     assert_eq!(res.status(), StatusCode::BAD_REQUEST);
-    assert!(res.text().await?.contains("Failed to parse product from request body"));
+    assert!(res
+        .text()
+        .await?
+        .contains("Failed to parse product from request body"));
 
     Ok(())
 }
