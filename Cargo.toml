@@ -6,12 +6,12 @@ edition = "2021"
 
 [dependencies]
 async-trait = "0.1"
-aws-config = "0.0.22-alpha"
-aws-sdk-dynamodb = "0.0.22-alpha"
-aws-sdk-eventbridge = "0.0.22-alpha"
-aws-smithy-client = { version = "0.27.0-alpha", features = ["test-util"] }
-aws-smithy-http = "0.27.0-alpha"
-aws-types = "0.0.22-alpha"
+aws-config = "0.0.25-alpha"
+aws-sdk-dynamodb = "0.0.25-alpha"
+aws-sdk-eventbridge = "0.0.25-alpha"
+aws-smithy-client = { version = "0.28.0-alpha", features = ["test-util"] }
+aws-smithy-http = "0.28.0-alpha"
+aws-types = "0.0.25-alpha"
 futures = { version = "0.3", features = ["std"] }
 lambda_runtime = { version = "0.4", optional = true }
 lambda_http = { version = "0.4", optional = true }
