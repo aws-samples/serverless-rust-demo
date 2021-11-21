@@ -10,6 +10,8 @@ This is a simple serverless application built in Rust. It consists of an API Gat
 
 This single crate will create [five different binaries](./src/bin), one for each Lambda function. It uses an [hexagonal architecture pattern](https://aws.amazon.com/blogs/compute/developing-evolutionary-architecture-with-aws-lambda/) to decouple the [entry points](./src/bin), from the main [domain logic](./src/lib.rs), the [storage component](./src/store), and the [event bus component](./src/event_bus).
 
+You can find a walkthrough of the code in this project on [the AWS Twitch channel](https://www.twitch.tv/videos/1201473601).
+
 ### Requirements
 
 * [Rust](https://www.rust-lang.org/)
