@@ -169,19 +169,19 @@ impl TryFrom<&HashMap<String, AttributeValue>> for Product {
     fn try_from(value: &HashMap<String, AttributeValue>) -> Result<Self, Self::Error> {
         Ok(Product {
             id: value
-                .get("Id")
+                .get("id")
                 .ok_or(Error::InternalError("Missing id"))?
                 .as_s()
                 .ok_or(Error::InternalError("id is not a string"))?
                 .to_string(),
             name: value
-                .get("Name")
+                .get("name")
                 .ok_or(Error::InternalError("Missing name"))?
                 .as_s()
                 .ok_or(Error::InternalError("name is not a string"))?
                 .to_string(),
             price: value
-                .get("Price")
+                .get("price")
                 .ok_or(Error::InternalError("Missing price"))?
                 .as_n()
                 .ok_or(Error::InternalError("price is not a number"))?,
@@ -199,21 +199,21 @@ mod tests {
             "Records": [
               {
                 "eventID": "1",
-                "eventVersion": "1.0",
+                "eventVersion": "1.1",
                 "dynamodb": {
                   "Keys": {
-                    "Id": {
+                    "id": {
                       "S": "101"
                     }
                   },
                   "NewImage": {
-                    "Id": {
+                    "id": {
                         "S": "101"
                     },
-                    "Name": {
+                    "name": {
                       "S": "new-item"
                     },
-                    "Price": {
+                    "price": {
                       "N": "10.5"
                     }
                   },
@@ -228,34 +228,34 @@ mod tests {
               },
               {
                 "eventID": "2",
-                "eventVersion": "1.0",
+                "eventVersion": "1.1",
                 "dynamodb": {
                   "OldImage": {
-                    "Id": {
+                    "id": {
                       "S": "102"
                     },
-                    "Name": {
+                    "name": {
                       "S": "new-item2"
                     },
-                    "Price": {
+                    "price": {
                       "N": "20.5"
                     }
                   },
                   "SequenceNumber": "222",
                   "Keys": {
-                    "Id": {
+                    "id": {
                       "S": "102"
                     }
                   },
                   "SizeBytes": 59,
                   "NewImage": {
-                    "Id": {
+                    "id": {
                         "S": "102"
                     },
-                    "Name": {
+                    "name": {
                       "S": "new-item2"
                     },
-                    "Price": {
+                    "price": {
                       "N": "30.5"
                     }
                   },
@@ -283,7 +283,7 @@ mod tests {
             event.records[0]
                 .dynamodb
                 .new_image
-                .get("Name")
+                .get("name")
                 .unwrap()
                 .as_s(),
             Some("new-item")
@@ -293,7 +293,7 @@ mod tests {
             event.records[1]
                 .dynamodb
                 .old_image
-                .get("Name")
+                .get("name")
                 .unwrap()
                 .as_s(),
             Some("new-item2")
