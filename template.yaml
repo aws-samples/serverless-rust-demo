@@ -107,7 +107,6 @@ Resources:
       Environment:
         Variables:
           EVENT_BUS_NAME: !Ref EventBus
-      MemorySize: 3072
       Policies:
         - Version: "2012-10-17"
           Statement:
