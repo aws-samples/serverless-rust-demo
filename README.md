@@ -12,6 +12,8 @@ This single crate will create [five different binaries](./src/bin), one for each
 
 You can find a walkthrough of the code in this project on [the AWS Twitch channel](https://www.twitch.tv/videos/1201473601).
 
+If you want to get started with Rust on Lambda, you can use [these cookiecutter templates](https://github.com/aws-samples/cookiecutter-aws-sam-rust) to setup your project.
+
 ### Requirements
 
 * [Rust](https://www.rust-lang.org/)
