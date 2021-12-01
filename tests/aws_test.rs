@@ -22,18 +22,22 @@ fn get_random_string(length: usize) -> String {
         .collect();
 }
 
+fn get_random_product() -> Product {
+    let mut rng = rand::thread_rng();
+    Product {
+        id: get_random_string(16),
+        name: get_random_string(16),
+        // Price with 2 decimal digits
+        price: (rng.gen::<f64>() * 25600.0).round() / 100.0,
+    }
+}
+
 #[tokio::test]
 async fn test_flow() -> Result<(), E> {
     let client = reqwest::Client::new();
     let api_url: String = env::var("API_URL").expect("API_URL not set");
 
-    let mut rng = rand::thread_rng();
-
-    let product = Product {
-        id: get_random_string(16),
-        name: get_random_string(16),
-        price: rng.gen::<f64>() * 256.0,
-    };
+    let product = get_random_product();
 
     // Put new product
     println!("PUT new product");

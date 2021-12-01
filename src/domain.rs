@@ -19,7 +19,11 @@ pub async fn get_product(store: &dyn StoreGet, id: &str) -> Result<Option<Produc
 }
 
 pub async fn put_product(store: &dyn StorePut, product: &Product) -> Result<(), Error> {
-    store.put(product).await
+    // Round price to 2 decimal digits
+    let mut product = product.clone();
+    product.price = (product.price * 100.0).round() / 100.0;
+
+    store.put(&product).await
 }
 
 pub async fn delete_product(store: &dyn StoreDelete, id: &str) -> Result<(), Error> {
