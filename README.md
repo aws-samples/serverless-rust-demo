@@ -39,9 +39,27 @@ make deploy
 
 # Run integration tests against the API in the cloud
 make tests-integ
+```
 
-# Run a load test against the API in the cloud
+## Load Test
+
+[Artillery](https://www.artillery.io/) is used to make 300 requests / second for 10 minutes to our API endpoints. You can run this
+with the following command:
+
+```bash
 make tests-load
+```
+
+### CloudWatch Logs Insights
+
+Using this CloudWatch Logs Insights query you can analyse the latency of the requests made to the Lambda functions.
+
+The query separates cold starts from other requests and then gives you p50, p90 and p99 percentiles.
+
+```
+filter @type="REPORT"
+| fields greatest(@initDuration, 0) + @duration as duration, ispresent(@initDuration) as coldStart
+| stats count(*) as count, pct(duration, 50) as p50, pct(duration, 90) as p90, pct(duration, 99) as p99, max(duration) as max by coldStart
 ```
 
 ## 🦀 Getting started with Rust on Lambda
@@ -53,6 +71,7 @@ If you want to get started with Rust on Lambda, you can use [these cookiecutter 
 You can find implementations of this project in other languages here:
 
 * [☕ Java with GraalVM](https://github.com/aws-samples/serverless-graalvm-demo)
+* [🏗️ TypeScript](https://github.com/aws-samples/serverless-typescript-demo)
 
 ## Security
 
