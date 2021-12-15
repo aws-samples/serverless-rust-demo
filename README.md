@@ -62,6 +62,8 @@ filter @type="REPORT"
 | stats count(*) as count, pct(duration, 50) as p50, pct(duration, 90) as p90, pct(duration, 99) as p99, max(duration) as max by coldStart
 ```
 
+![Load Test Results](imgs/load-test.png)
+
 ## 🦀 Getting started with Rust on Lambda
 
 If you want to get started with Rust on Lambda, you can use [these cookiecutter templates](https://github.com/aws-samples/cookiecutter-aws-sam-rust) to setup your project.
