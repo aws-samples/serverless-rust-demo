@@ -1,6 +1,7 @@
 use crate::{domain, store, Product};
 use lambda_http::{
-    ext::RequestExt, lambda_runtime::Context, Body, IntoResponse, Request, Response,
+    ext::RequestExt, http::StatusCode, lambda_runtime::Context, Body, IntoResponse, Request,
+    Response,
 };
 use serde_json::json;
 use tracing::{error, info, instrument, warn};
@@ -23,7 +24,7 @@ pub async fn delete_product(
         None => {
             warn!("Missing 'id' parameter in path");
             return Ok(response(
-                400,
+                StatusCode::BAD_REQUEST,
                 json!({ "message": "Missing 'id' parameter in path" }).to_string(),
             ));
         }
@@ -42,7 +43,7 @@ pub async fn delete_product(
         Ok(_) => {
             info!("Product {} deleted", id);
             Ok(response(
-                200,
+                StatusCode::OK,
                 json!({"message": "Product deleted"}).to_string(),
             ))
         }
@@ -50,7 +51,7 @@ pub async fn delete_product(
             // Log the error message
             error!("Error deleting the product {}: {}", id, err);
             Ok(response(
-                500,
+                StatusCode::INTERNAL_SERVER_ERROR,
                 json!({"message": "Failed to delete product"}).to_string(),
             ))
         }
@@ -73,7 +74,7 @@ pub async fn get_product(
         None => {
             warn!("Missing 'id' parameter in path");
             return Ok(response(
-                400,
+                StatusCode::BAD_REQUEST,
                 json!({ "message": "Missing 'id' parameter in path" }).to_string(),
             ));
         }
@@ -90,17 +91,20 @@ pub async fn get_product(
     // an error.
     Ok(match product {
         // Product exists
-        Ok(Some(product)) => response(200, json!(product).to_string()),
+        Ok(Some(product)) => response(StatusCode::OK, json!(product).to_string()),
         // Product doesn't exist
         Ok(None) => {
             warn!("Product not found: {}", id);
-            response(404, json!({"message": "Product not found"}).to_string())
+            response(
+                StatusCode::NOT_FOUND,
+                json!({"message": "Product not found"}).to_string(),
+            )
         }
         // Error
         Err(err) => {
             error!("Error fetching product: {}", err);
             response(
-                500,
+                StatusCode::INTERNAL_SERVER_ERROR,
                 json!({"message": "Error fetching product"}).to_string(),
             )
         }
@@ -121,12 +125,12 @@ pub async fn get_products(
     // Return response
     Ok(match res {
         // Return a list of products
-        Ok(res) => response(200, json!(res).to_string()),
+        Ok(res) => response(StatusCode::OK, json!(res).to_string()),
         // Return an error
         Err(err) => {
             error!("Something went wrong: {:?}", err);
             response(
-                500,
+                StatusCode::INTERNAL_SERVER_ERROR,
                 json!({ "message": format!("Something went wrong: {:?}", err) }).to_string(),
             )
         }
@@ -149,7 +153,7 @@ pub async fn put_product(
         None => {
             warn!("Missing 'id' parameter in path");
             return Ok(response(
-                400,
+                StatusCode::BAD_REQUEST,
                 json!({ "message": "Missing 'id' parameter in path" }).to_string(),
             ));
         }
@@ -162,7 +166,7 @@ pub async fn put_product(
         _ => {
             warn!("Empty request body");
             return Ok(response(
-                400,
+                StatusCode::BAD_REQUEST,
                 json!({"message": "Empty request body"}).to_string(),
             ));
         }
@@ -172,7 +176,7 @@ pub async fn put_product(
         Err(err) => {
             warn!("Failed to parse product from request body: {}", err);
             return Ok(response(
-                400,
+                StatusCode::BAD_REQUEST,
                 json!({"message": "Failed to parse product from request body"}).to_string(),
             ));
         }
@@ -186,7 +190,7 @@ pub async fn put_product(
             id, product.id
         );
         return Ok(response(
-            400,
+            StatusCode::BAD_REQUEST,
             json!({"message": "Product ID in path does not match product ID in body"}).to_string(),
         ));
     }
@@ -202,13 +206,16 @@ pub async fn put_product(
         // Product created
         Ok(_) => {
             info!("Created product {:?}", product.id);
-            response(201, json!({"message": "Product created"}).to_string())
+            response(
+                StatusCode::CREATED,
+                json!({"message": "Product created"}).to_string(),
+            )
         }
         // Error creating product
         Err(err) => {
             error!("Failed to create product {}: {}", product.id, err);
             response(
-                500,
+                StatusCode::INTERNAL_SERVER_ERROR,
                 json!({"message": "Failed to create product"}).to_string(),
             )
         }
@@ -216,7 +223,7 @@ pub async fn put_product(
 }
 
 /// HTTP Response with a JSON payload
-fn response(status_code: u16, body: String) -> Response<String> {
+fn response(status_code: StatusCode, body: String) -> Response<String> {
     Response::builder()
         .status(status_code)
         .header("Content-Type", "application/json")
