@@ -14,7 +14,7 @@ pub trait AttributeValuesExt {
 }
 
 impl AttributeValuesExt for HashMap<String, AttributeValue> {
-    /// Return a string from an key
+    /// Return a string from a key
     ///
     /// E.g. if you run `get_s("id")` on a DynamoDB item structured like this,
     /// you will retrieve the value `"foo"`.
@@ -30,7 +30,7 @@ impl AttributeValuesExt for HashMap<String, AttributeValue> {
         Some(self.get(key)?.as_s().ok()?.to_owned())
     }
 
-    /// Return a number from an key
+    /// Return a number from a key
     ///
     /// E.g. if you run `get_n("price")` on a DynamoDB item structured like this,
     /// you will retrieve the value `10.0`.

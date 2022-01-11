@@ -16,14 +16,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>
     //
     // This is the entry point for the Lambda function. The `lambda_runtime`
     // crate will take care of contacting the Lambda runtime API and invoking
-    // the `delete_product` function.
+    // the `parse_events` function.
     // See https://docs.aws.amazon.com/lambda/latest/dg/runtimes-api.html
     //
     // This uses a closure to pass the Service without having to reinstantiate
     // it for every call. This is a bit of a hack, but it's the only way to
     // pass the event bus to a lambda function.
     //
-    // Furthermore, we don't await the result of `delete_product` because
+    // Furthermore, we don't await the result of `parse_events` because
     // async closures aren't stable yet. This way, the closure returns a Future,
     // which matches the signature of the lambda function.
     // See https://github.com/rust-lang/rust/issues/62290
