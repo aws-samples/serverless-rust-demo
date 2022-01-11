@@ -6,12 +6,12 @@ edition = "2021"
 
 [dependencies]
 async-trait = "0.1"
-aws-config = "0.2"
-aws-sdk-dynamodb = "0.2"
-aws-sdk-eventbridge = "0.2"
-aws-smithy-client = { version = "0.32", features = ["test-util"] }
-aws-smithy-http = "0.32"
-aws-types = "0.2"
+aws-config = "0.4"
+aws-sdk-dynamodb = "0.4"
+aws-sdk-eventbridge = "0.4"
+aws-smithy-client = { version = "0.34", features = ["test-util"] }
+aws-smithy-http = "0.34"
+aws-types = "0.4"
 futures = { version = "0.3", features = ["std"] }
 lambda_runtime = { version = "0.4", optional = true }
 lambda_http = { version = "0.4", optional = true }
@@ -24,7 +24,7 @@ tokio = { version = "1", features = ["full"] }
 
 [dev-dependencies]
 # Only allow hardcoded credentials for unit tests
-aws-types = { version = "0.2", features = ["hardcoded-credentials"] }
+aws-types = { version = "0.4", features = ["hardcoded-credentials"] }
 float-cmp = "0.9"
 http = "0.2"
 rand = "0.8"
