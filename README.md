@@ -18,9 +18,9 @@ If you want to learn more about Rust on Lambda and how this project is structure
 
 ### Requirements
 
-* [Rust](https://www.rust-lang.org/)
+* [Rust](https://www.rust-lang.org/) 1.56.0 or higher
 * [Cross](https://github.com/rust-embedded/cross) for cross-compilation to Arm64
-* The [AWS SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-install.html) for deploying to the cloud
+* The [AWS SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-install.html) 1.33.0 or higher for deploying to the cloud
 * [Artillery](https://artillery.io/) for load-testing the application
 
 ### Commands
