@@ -8,6 +8,9 @@ ARCH := aarch64-unknown-linux-gnu
 all: build tests-unit deploy tests-integ
 ci: build tests-unit
 
+install-cross:
+	cargo install cross
+
 build:
 	cross build --release --target $(ARCH)
 	rm -rf ./build

@@ -28,6 +28,9 @@ If you want to learn more about Rust on Lambda and how this project is structure
 You can use the following commands at the root of this repository to test, build, and deploy this project:
 
 ```bash
+# Optional: install Cross
+make install-cross
+
 # Run unit tests
 make tests-unit
 
