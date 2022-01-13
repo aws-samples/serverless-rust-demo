@@ -8,8 +8,20 @@ ARCH := aarch64-unknown-linux-gnu
 all: build tests-unit deploy tests-integ
 ci: build tests-unit
 
-install-cross:
+setup:
+ifeq (,$(shell which rustc))
+	$(error "Could not found Rust compiler, please install it")
+endif
+ifeq (,$(shell which cargo))
+	$(error "Could not found Cargo, please install it")
+endif
 	cargo install cross
+ifeq (,$(shell which sam))
+	$(error "Could not found SAM CLI, please install it")
+endif
+ifeq (,$(shell which artillery))
+	$(error "Could not found Artillery, it's required for load testing")
+endif
 
 build:
 	cross build --release --target $(ARCH)
