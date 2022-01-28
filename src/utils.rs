@@ -12,7 +12,7 @@ pub fn setup_tracing() {
 
 /// Initialize a store
 #[instrument]
-pub async fn get_store() -> impl store::Store {
+pub async fn get_store() -> store::DynamoDBStore {
     // Get AWS Configuration
     let config = aws_config::load_from_env().await;
 
