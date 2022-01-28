@@ -160,7 +160,13 @@ mod tests {
     async fn get_mock_config() -> Config {
         let cfg = aws_config::from_env()
             .region(Region::new("eu-west-1"))
-            .credentials_provider(Credentials::from_keys("accesskey", "privatekey", None))
+            .credentials_provider(Credentials::new(
+                "accesskey",
+                "privatekey",
+                None,
+                None,
+                "dummy",
+            ))
             .load()
             .await;
 
