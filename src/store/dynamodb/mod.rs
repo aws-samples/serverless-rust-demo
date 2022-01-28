@@ -17,27 +17,21 @@ use ext::AttributeValuesExt;
 /// We have to pass a generic type parameter `C` for the underlying client,
 /// restricted to something that implements the SmithyConnector trait so we can
 /// use it with both the actual AWS SDK client and a mock implementation.
-pub struct DynamoDBStore<C> {
-    client: Client<C>,
+pub struct DynamoDBStore {
+    client: Client,
     table_name: String,
 }
 
-impl<C> DynamoDBStore<C>
-where
-    C: aws_smithy_client::bounds::SmithyConnector,
-{
-    pub fn new(client: Client<C>, table_name: String) -> DynamoDBStore<C> {
+impl DynamoDBStore {
+    pub fn new(client: Client, table_name: String) -> DynamoDBStore {
         DynamoDBStore { client, table_name }
     }
 }
 
-impl<C> Store for DynamoDBStore<C> where C: aws_smithy_client::bounds::SmithyConnector {}
+impl Store for DynamoDBStore {}
 
 #[async_trait]
-impl<C> StoreGetAll for DynamoDBStore<C>
-where
-    C: aws_smithy_client::bounds::SmithyConnector,
-{
+impl StoreGetAll for DynamoDBStore {
     /// Get all items
     #[instrument(skip(self))]
     async fn all(&self, next: Option<&str>) -> Result<ProductRange, Error> {
@@ -65,10 +59,7 @@ where
 }
 
 #[async_trait]
-impl<C> StoreGet for DynamoDBStore<C>
-where
-    C: aws_smithy_client::bounds::SmithyConnector,
-{
+impl StoreGet for DynamoDBStore {
     /// Get item
     #[instrument(skip(self))]
     async fn get(&self, id: &str) -> Result<Option<Product>, Error> {
@@ -89,10 +80,7 @@ where
 }
 
 #[async_trait]
-impl<C> StorePut for DynamoDBStore<C>
-where
-    C: aws_smithy_client::bounds::SmithyConnector,
-{
+impl StorePut for DynamoDBStore {
     /// Create or update an item
     #[instrument(skip(self))]
     async fn put(&self, product: &Product) -> Result<(), Error> {
@@ -109,10 +97,7 @@ where
 }
 
 #[async_trait]
-impl<C> StoreDelete for DynamoDBStore<C>
-where
-    C: aws_smithy_client::bounds::SmithyConnector,
-{
+impl StoreDelete for DynamoDBStore {
     /// Delete item
     #[instrument(skip(self))]
     async fn delete(&self, id: &str) -> Result<(), Error> {
@@ -168,7 +153,7 @@ mod tests {
     use super::*;
     use crate::Error;
     use aws_sdk_dynamodb::{Client, Config, Credentials, Region};
-    use aws_smithy_client::test_connection::TestConnection;
+    use aws_smithy_client::{erase::DynConnector, test_connection::TestConnection};
     use aws_smithy_http::body::SdkBody;
 
     /// Config for mocking DynamoDB
@@ -203,7 +188,8 @@ mod tests {
                 .body(SdkBody::from(r#"{"Items": []}"#))
                 .unwrap(),
         )]);
-        let client = Client::from_conf_conn(get_mock_config().await, conn.clone());
+        let client =
+            Client::from_conf_conn(get_mock_config().await, DynConnector::new(conn.clone()));
         let store = DynamoDBStore::new(client, "test".to_string());
 
         // WHEN getting all items
@@ -229,7 +215,8 @@ mod tests {
                 .body(SdkBody::from(r#"{"Items": [{"id": {"S": "1"}, "name": {"S": "test1"}, "price": {"N": "1.0"}}]}"#))
                 .unwrap(),
         )]);
-        let client = Client::from_conf_conn(get_mock_config().await, conn.clone());
+        let client =
+            Client::from_conf_conn(get_mock_config().await, DynConnector::new(conn.clone()));
         let store = DynamoDBStore::new(client, "test".to_string());
 
         // WHEN getting all items
@@ -264,7 +251,8 @@ mod tests {
                 ))
                 .unwrap(),
         )]);
-        let client = Client::from_conf_conn(get_mock_config().await, conn.clone());
+        let client =
+            Client::from_conf_conn(get_mock_config().await, DynConnector::new(conn.clone()));
         let store = DynamoDBStore::new(client, "test".to_string());
 
         // WHEN getting all items
@@ -293,7 +281,8 @@ mod tests {
                 .body(SdkBody::from("{}"))
                 .unwrap(),
         )]);
-        let client = Client::from_conf_conn(get_mock_config().await, conn.clone());
+        let client =
+            Client::from_conf_conn(get_mock_config().await, DynConnector::new(conn.clone()));
         let store = DynamoDBStore::new(client, "test".to_string());
 
         // WHEN deleting an item
@@ -318,7 +307,8 @@ mod tests {
                 .body(SdkBody::from(r#"{"Item": {"id": {"S": "1"}, "name": {"S": "test1"}, "price": {"N": "1.0"}}}"#))
                 .unwrap(),
         )]);
-        let client = Client::from_conf_conn(get_mock_config().await, conn.clone());
+        let client =
+            Client::from_conf_conn(get_mock_config().await, DynConnector::new(conn.clone()));
         let store = DynamoDBStore::new(client, "test".to_string());
 
         // WHEN getting an item
@@ -351,7 +341,8 @@ mod tests {
                 .body(SdkBody::from(r#"{"Attributes": {"id": {"S": "1"}, "name": {"S": "test1"}, "price": {"N": "1.5"}}}"#))
                 .unwrap(),
         )]);
-        let client = Client::from_conf_conn(get_mock_config().await, conn.clone());
+        let client =
+            Client::from_conf_conn(get_mock_config().await, DynConnector::new(conn.clone()));
         let store = DynamoDBStore::new(client, "test".to_string());
         let product = Product {
             id: "1".to_string(),

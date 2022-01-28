@@ -13,14 +13,19 @@ aws-smithy-client = { version = "0.34", features = ["test-util"] }
 aws-smithy-http = "0.34"
 aws-types = "0.4"
 futures = { version = "0.3", features = ["std"] }
-lambda_runtime = { version = "0.4", optional = true }
-lambda_http = { version = "0.4", optional = true }
-rayon = { version = "1.5", optional = true }
 serde = "1"
 serde_json = "1.0"
 tracing = "0.1"
 tracing-subscriber = { version = "0.2", features = ["fmt", "json"] }
 tokio = { version = "1", features = ["full"] }
+
+# Lambda
+lambda_runtime = { version = "0.4", optional = true }
+lambda_http = { version = "0.4", optional = true }
+rayon = { version = "1.5", optional = true }
+
+# Container
+rocket = { version = "0.5.0-rc.1", optional = true }
 
 [dev-dependencies]
 # Only allow hardcoded credentials for unit tests
@@ -31,8 +36,9 @@ rand = "0.8"
 reqwest = { version = "0.11", features = ["json"] }
 
 [features]
-default = ["lambda"]
+default = ["lambda", "container"]
 lambda = ["lambda_runtime", "lambda_http", "rayon"]
+container = ["rocket"]
 
 [[bin]]
 name = "delete-product"
@@ -63,3 +69,8 @@ name = "dynamodb-streams"
 path = "src/bin/lambda/dynamodb-streams.rs"
 test = false
 required-features = ["lambda"]
+
+[[bin]]
+name = "rust-products"
+path = "src/bin/container/rust-products.rs"
+required-features = ["container"]
