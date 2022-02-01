@@ -13,29 +13,19 @@ mod ext;
 use ext::EventExt;
 
 /// EventBridge bus implementation.
-///
-/// We have to pass a generic type parameter `C` for the underlying client,
-/// restricted to something that implements the SmithyConnector trait so we can
-/// use it with both the actual AWS SDK client and a mock implementation.
-pub struct EventBridgeBus<C> {
-    client: Client<C>,
+pub struct EventBridgeBus {
+    client: Client,
     bus_name: String,
 }
 
-impl<C> EventBridgeBus<C>
-where
-    C: aws_smithy_client::bounds::SmithyConnector,
-{
-    pub fn new(client: Client<C>, bus_name: String) -> Self {
+impl EventBridgeBus {
+    pub fn new(client: Client, bus_name: String) -> Self {
         Self { client, bus_name }
     }
 }
 
 #[async_trait]
-impl<C> EventBus for EventBridgeBus<C>
-where
-    C: aws_smithy_client::bounds::SmithyConnector,
-{
+impl EventBus for EventBridgeBus {
     type E = Event;
 
     /// Publish an event to the event bus.
@@ -89,7 +79,7 @@ mod tests {
     use super::*;
     use crate::{Event, Product};
     use aws_sdk_eventbridge::{Client, Config, Credentials, Region};
-    use aws_smithy_client::test_connection::TestConnection;
+    use aws_smithy_client::{erase::DynConnector, test_connection::TestConnection};
     use aws_smithy_http::body::SdkBody;
 
     // Config for mocking EventBridge
@@ -132,7 +122,8 @@ mod tests {
                 .body(SdkBody::from("{}"))
                 .unwrap(),
         )]);
-        let client = Client::from_conf_conn(get_mock_config().await, conn.clone());
+        let client =
+            Client::from_conf_conn(get_mock_config().await, DynConnector::new(conn.clone()));
         let event_bus = EventBridgeBus::new(client, "test-bus".to_string());
 
         // WHEN we send an event
@@ -167,7 +158,8 @@ mod tests {
                 .body(SdkBody::from("{}"))
                 .unwrap(),
         )]);
-        let client = Client::from_conf_conn(get_mock_config().await, conn.clone());
+        let client =
+            Client::from_conf_conn(get_mock_config().await, DynConnector::new(conn.clone()));
         let event_bus = EventBridgeBus::new(client, "test-bus".to_string());
 
         // WHEN we send a batch of events
@@ -200,7 +192,8 @@ mod tests {
     async fn test_send_events0() -> Result<(), Error> {
         // GIVEN a mock EventBridge client
         let conn: TestConnection<SdkBody> = TestConnection::new(vec![]);
-        let client = Client::from_conf_conn(get_mock_config().await, conn.clone());
+        let client =
+            Client::from_conf_conn(get_mock_config().await, DynConnector::new(conn.clone()));
         let event_bus = EventBridgeBus::new(client, "test-bus".to_string());
 
         // WHEN we send zero events
@@ -239,7 +232,8 @@ mod tests {
                 .body(SdkBody::from("{}"))
                 .unwrap(),
         )]);
-        let client = Client::from_conf_conn(get_mock_config().await, conn.clone());
+        let client =
+            Client::from_conf_conn(get_mock_config().await, DynConnector::new(conn.clone()));
         let event_bus = EventBridgeBus::new(client, "test-bus".to_string());
 
         // WHEN we send 15 events
