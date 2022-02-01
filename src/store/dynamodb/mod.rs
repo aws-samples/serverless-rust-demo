@@ -13,10 +13,6 @@ mod ext;
 use ext::AttributeValuesExt;
 
 /// DynamoDB store implementation.
-///
-/// We have to pass a generic type parameter `C` for the underlying client,
-/// restricted to something that implements the SmithyConnector trait so we can
-/// use it with both the actual AWS SDK client and a mock implementation.
 pub struct DynamoDBStore {
     client: Client,
     table_name: String,
