@@ -6,6 +6,7 @@ use super::{Store, StoreDelete, StoreGet, StoreGetAll, StorePut};
 use crate::{Error, Product, ProductRange};
 use async_trait::async_trait;
 use aws_sdk_dynamodb::{model::AttributeValue, Client};
+use serde_dynamo::aws_sdk_dynamodb_0_6::{from_item, from_items};
 use std::collections::HashMap;
 use tracing::{info, instrument};
 
@@ -42,11 +43,10 @@ impl StoreGetAll for DynamoDBStore {
         let res = req.send().await?;
 
         // Build response
-        let products = match res.items {
-            Some(items) => items
-                .into_iter()
-                .map(|v| v.try_into())
-                .collect::<Result<Vec<Product>, Error>>()?,
+        let products: Vec<Product> = match res.items {
+            Some(items) => from_items(items).map_err(|_|
+                // TODO: Find out correct error from underlying error?
+                Error::InternalError("Missing name"))?,
             None => Vec::default(),
         };
         let next = res.last_evaluated_key.map(|m| m.get_s("id").unwrap());
@@ -69,7 +69,8 @@ impl StoreGet for DynamoDBStore {
             .await?;
 
         Ok(match res.item {
-            Some(item) => Some(item.try_into()?),
+            // TODO: Find out correct error from underlying error?
+            Some(item) => from_item(item).map_err(|_| Error::InternalError("Missing name"))?,
             None => None,
         })
     }
@@ -123,26 +124,26 @@ impl From<&Product> for HashMap<String, AttributeValue> {
         retval
     }
 }
-impl TryFrom<HashMap<String, AttributeValue>> for Product {
-    type Error = Error;
+// impl TryFrom<HashMap<String, AttributeValue>> for Product {
+// //     type Error = Error;
 
-    /// Try to convert a DynamoDB item into a Product
-    ///
-    /// This could fail as the DynamoDB item might be missing some fields.
-    fn try_from(value: HashMap<String, AttributeValue>) -> Result<Self, Self::Error> {
-        Ok(Product {
-            id: value
-                .get_s("id")
-                .ok_or(Error::InternalError("Missing id"))?,
-            name: value
-                .get_s("name")
-                .ok_or(Error::InternalError("Missing name"))?,
-            price: value
-                .get_n("price")
-                .ok_or(Error::InternalError("Missing price"))?,
-        })
-    }
-}
+// //     /// Try to convert a DynamoDB item into a Product
+// //     ///
+// //     /// This could fail as the DynamoDB item might be missing some fields.
+// //     fn try_from(value: HashMap<String, AttributeValue>) -> Result<Self, Self::Error> {
+// //         Ok(Product {
+// //             id: value
+// //                 .get_s("id")
+// //                 .ok_or(Error::InternalError("Missing id"))?,
+// //             name: value
+// //                 .get_s("name")
+// //                 .ok_or(Error::InternalError("Missing name"))?,
+// //             price: value
+// //                 .get_n("price")
+// //                 .ok_or(Error::InternalError("Missing price"))?,
+// //         })
+// //     }
+// }
 
 #[cfg(test)]
 mod tests {
