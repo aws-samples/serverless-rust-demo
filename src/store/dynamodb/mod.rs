@@ -6,8 +6,7 @@ use super::{Store, StoreDelete, StoreGet, StoreGetAll, StorePut};
 use crate::{Error, Product, ProductRange};
 use async_trait::async_trait;
 use aws_sdk_dynamodb::{model::AttributeValue, Client};
-use serde_dynamo::aws_sdk_dynamodb_0_6::{from_item, from_items};
-use std::collections::HashMap;
+use serde_dynamo::aws_sdk_dynamodb_0_6::{from_item, from_items, to_item};
 use tracing::{info, instrument};
 
 mod ext;
@@ -85,7 +84,8 @@ impl StorePut for DynamoDBStore {
         self.client
             .put_item()
             .table_name(&self.table_name)
-            .set_item(Some(product.into()))
+            // TODO: Can this fail?
+            .set_item(Some(to_item(product).unwrap()))
             .send()
             .await?;
 
