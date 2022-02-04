@@ -110,41 +110,6 @@ impl StoreDelete for DynamoDBStore {
     }
 }
 
-impl From<&Product> for HashMap<String, AttributeValue> {
-    /// Convert a &Product into a DynamoDB item
-    fn from(value: &Product) -> HashMap<String, AttributeValue> {
-        let mut retval = HashMap::new();
-        retval.insert("id".to_owned(), AttributeValue::S(value.id.clone()));
-        retval.insert("name".to_owned(), AttributeValue::S(value.name.clone()));
-        retval.insert(
-            "price".to_owned(),
-            AttributeValue::N(format!("{:}", value.price)),
-        );
-
-        retval
-    }
-}
-// impl TryFrom<HashMap<String, AttributeValue>> for Product {
-// //     type Error = Error;
-
-// //     /// Try to convert a DynamoDB item into a Product
-// //     ///
-// //     /// This could fail as the DynamoDB item might be missing some fields.
-// //     fn try_from(value: HashMap<String, AttributeValue>) -> Result<Self, Self::Error> {
-// //         Ok(Product {
-// //             id: value
-// //                 .get_s("id")
-// //                 .ok_or(Error::InternalError("Missing id"))?,
-// //             name: value
-// //                 .get_s("name")
-// //                 .ok_or(Error::InternalError("Missing name"))?,
-// //             price: value
-// //                 .get_n("price")
-// //                 .ok_or(Error::InternalError("Missing price"))?,
-// //         })
-// //     }
-// }
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -152,6 +117,7 @@ mod tests {
     use aws_sdk_dynamodb::{Client, Config, Credentials, Region};
     use aws_smithy_client::{erase::DynConnector, test_connection::TestConnection};
     use aws_smithy_http::body::SdkBody;
+    use std::collections::HashMap;
 
     /// Config for mocking DynamoDB
     async fn get_mock_config() -> Config {
@@ -369,7 +335,7 @@ mod tests {
         value.insert("name".to_owned(), AttributeValue::S("name".to_owned()));
         value.insert("price".to_owned(), AttributeValue::N("1.0".to_owned()));
 
-        let product = Product::try_from(value).unwrap();
+        let product: Product = from_item(value).unwrap();
         assert_eq!(product.id, "id");
         assert_eq!(product.name, "name");
         assert_eq!(product.price, 1.0);
@@ -383,7 +349,7 @@ mod tests {
             price: 1.5,
         };
 
-        let value: HashMap<String, AttributeValue> = (&product).into();
+        let value: HashMap<String, AttributeValue> = to_item(product).unwrap();
         assert_eq!(value.get("id").unwrap().as_s().unwrap(), "id");
         assert_eq!(value.get("name").unwrap().as_s().unwrap(), "name");
         assert_eq!(value.get("price").unwrap().as_n().unwrap(), "1.5");
