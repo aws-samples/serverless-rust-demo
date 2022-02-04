@@ -6,11 +6,8 @@ use super::{Store, StoreDelete, StoreGet, StoreGetAll, StorePut};
 use crate::{Error, Product, ProductRange};
 use async_trait::async_trait;
 use aws_sdk_dynamodb::{model::AttributeValue, Client};
-use serde_dynamo::aws_sdk_dynamodb_0_6::{from_item, from_items, to_item};
+use serde_dynamo::aws_sdk_dynamodb_0_6::{from_attribute_value, from_item, from_items, to_item};
 use tracing::{info, instrument};
-
-mod ext;
-use ext::AttributeValuesExt;
 
 /// DynamoDB store implementation.
 pub struct DynamoDBStore {
@@ -48,7 +45,9 @@ impl StoreGetAll for DynamoDBStore {
                 Error::InternalError("Missing name"))?,
             None => Vec::default(),
         };
-        let next = res.last_evaluated_key.map(|m| m.get_s("id").unwrap());
+        let next = res
+            .last_evaluated_key
+            .map(|m| from_attribute_value(m["id"].clone()).unwrap());
         Ok(ProductRange { products, next })
     }
 }
