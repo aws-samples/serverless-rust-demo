@@ -15,7 +15,8 @@ This single crate will create [five different binaries](./src/bin), one for each
 ### Requirements
 
 * [Rust](https://www.rust-lang.org/) 1.56.0 or higher
-* [Cross](https://github.com/rust-embedded/cross) for cross-compilation to Arm64
+* [cargo-zigbuild](https://github.com/messense/cargo-zigbuild) and [Zig](https://ziglang.org/) for cross-compilation
+* [jq](https://stedolan.github.io/jq/) for tooling specific to this project
 * The [AWS SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-install.html) 1.33.0 or higher for deploying to the cloud
 * [Artillery](https://artillery.io/) for load-testing the application
 
