@@ -1,4 +1,4 @@
-use lambda_runtime::{handler_fn, Context};
+use lambda_runtime::{service_fn, LambdaEvent};
 use products::{
     entrypoints::lambda::dynamodb::{model::DynamoDBEvent, parse_events},
     utils::*,
@@ -27,7 +27,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>
     // async closures aren't stable yet. This way, the closure returns a Future,
     // which matches the signature of the lambda function.
     // See https://github.com/rust-lang/rust/issues/62290
-    lambda_runtime::run(handler_fn(|event: DynamoDBEvent, ctx: Context| {
+    lambda_runtime::run(service_fn(|event: LambdaEvent<DynamoDBEvent>| {
+        let (event, ctx) = event.into_parts();
         parse_events(&event_bus, event, ctx)
     }))
     .await?;
