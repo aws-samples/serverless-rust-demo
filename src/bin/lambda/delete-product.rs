@@ -1,8 +1,4 @@
-use lambda_http::{
-    handler,
-    lambda_runtime::{self, Context},
-    Request,
-};
+use lambda_http::{service_fn, Request, RequestExt};
 use products::{entrypoints::lambda::apigateway::delete_product, utils::*};
 
 #[tokio::main]
@@ -15,7 +11,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>
 
     // Run the Lambda function
     //
-    // This is the entry point for the Lambda function. The `lambda_runtime`
+    // This is the entry point for the Lambda function. The `lambda_http`
     // crate will take care of contacting the Lambda runtime API and invoking
     // the `delete_product` function.
     // See https://docs.aws.amazon.com/lambda/latest/dg/runtimes-api.html
@@ -28,7 +24,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>
     // async closures aren't stable yet. This way, the closure returns a Future,
     // which matches the signature of the lambda function.
     // See https://github.com/rust-lang/rust/issues/62290
-    lambda_runtime::run(handler(|event: Request, ctx: Context| {
+    lambda_http::run(service_fn(|event: Request| {
+        let ctx = event.lambda_context();
         delete_product(&store, event, ctx)
     }))
     .await?;

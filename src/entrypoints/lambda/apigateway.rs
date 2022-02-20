@@ -19,7 +19,7 @@ pub async fn delete_product(
     //
     // If the event doesn't contain a product ID, we return a 400 Bad Request.
     let path_parameters = event.path_parameters();
-    let id = match path_parameters.get("id") {
+    let id = match path_parameters.first("id") {
         Some(id) => id,
         None => {
             warn!("Missing 'id' parameter in path");
@@ -69,7 +69,7 @@ pub async fn get_product(
     //
     // If the event doesn't contain a product ID, we return a 400 Bad Request.
     let path_parameters = event.path_parameters();
-    let id = match path_parameters.get("id") {
+    let id = match path_parameters.first("id") {
         Some(id) => id,
         None => {
             warn!("Missing 'id' parameter in path");
@@ -148,7 +148,7 @@ pub async fn put_product(
     //
     // If the event doesn't contain a product ID, we return a 400 Bad Request.
     let path_parameters = event.path_parameters();
-    let id = match path_parameters.get("id") {
+    let id = match path_parameters.first("id") {
         Some(id) => id,
         None => {
             warn!("Missing 'id' parameter in path");
