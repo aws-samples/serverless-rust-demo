@@ -123,7 +123,10 @@ async fn test_put_product_empty() -> Result<(), E> {
     println!("PUT new product");
     let res = client.put(format!("{}/empty-id", api_url)).send().await?;
     assert_eq!(res.status(), StatusCode::BAD_REQUEST);
-    assert!(res.text().await?.contains("Empty request body"));
+    assert!(res
+        .text()
+        .await?
+        .contains("Missing product in request body"));
 
     Ok(())
 }

@@ -1,8 +1,5 @@
 use crate::{domain, store, Product};
-use lambda_http::{
-    ext::RequestExt, http::StatusCode, lambda_runtime::Context, Body, IntoResponse, Request,
-    Response,
-};
+use lambda_http::{http::StatusCode, IntoResponse, Request, RequestExt, Response};
 use serde_json::json;
 use tracing::{error, info, instrument, warn};
 
@@ -13,7 +10,6 @@ type E = Box<dyn std::error::Error + Sync + Send + 'static>;
 pub async fn delete_product(
     store: &dyn store::StoreDelete,
     event: Request,
-    _: Context,
 ) -> Result<impl IntoResponse, E> {
     // Retrieve product ID from event
     //
@@ -63,7 +59,6 @@ pub async fn delete_product(
 pub async fn get_product(
     store: &dyn store::StoreGet,
     event: Request,
-    _: Context,
 ) -> Result<impl IntoResponse, E> {
     // Retrieve product ID from event.
     //
@@ -116,7 +111,6 @@ pub async fn get_product(
 pub async fn get_products(
     store: &dyn store::StoreGetAll,
     _event: Request,
-    _: Context,
 ) -> Result<impl IntoResponse, E> {
     // Retrieve products
     // TODO: Add pagination
@@ -142,7 +136,6 @@ pub async fn get_products(
 pub async fn put_product(
     store: &dyn store::StorePut,
     event: Request,
-    _: Context,
 ) -> Result<impl IntoResponse, E> {
     // Retrieve product ID from event.
     //
@@ -160,19 +153,15 @@ pub async fn put_product(
     };
 
     // Read product from request
-    let product_res: Result<Product, serde_json::Error> = match event.body() {
-        Body::Text(body) => serde_json::from_str(body),
-        Body::Binary(body) => serde_json::from_slice(body),
-        _ => {
-            warn!("Empty request body");
+    let product: Product = match event.payload() {
+        Ok(Some(product)) => product,
+        Ok(None) => {
+            warn!("Missing product in request body");
             return Ok(response(
                 StatusCode::BAD_REQUEST,
-                json!({"message": "Empty request body"}).to_string(),
+                json!({"message": "Missing product in request body"}).to_string(),
             ));
         }
-    };
-    let product = match product_res {
-        Ok(product) => product,
         Err(err) => {
             warn!("Failed to parse product from request body: {}", err);
             return Ok(response(

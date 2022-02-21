@@ -1,4 +1,4 @@
-use lambda_http::{service_fn, Request, RequestExt};
+use lambda_http::{service_fn, Request};
 use products::{entrypoints::lambda::apigateway::delete_product, utils::*};
 
 #[tokio::main]
@@ -24,10 +24,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>
     // async closures aren't stable yet. This way, the closure returns a Future,
     // which matches the signature of the lambda function.
     // See https://github.com/rust-lang/rust/issues/62290
-    lambda_http::run(service_fn(|event: Request| {
-        let ctx = event.lambda_context();
-        delete_product(&store, event, ctx)
-    }))
-    .await?;
+    lambda_http::run(service_fn(|event: Request| delete_product(&store, event))).await?;
     Ok(())
 }
