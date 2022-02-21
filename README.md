@@ -25,8 +25,8 @@ This single crate will create [five different binaries](./src/bin), one for each
 You can use the following commands at the root of this repository to test, build, and deploy this project:
 
 ```bash
-# Optional: install Cross
-make install-cross
+# Optional: check if tools are installed
+make setup
 
 # Run unit tests
 make tests-unit
