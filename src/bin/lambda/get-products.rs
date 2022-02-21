@@ -1,4 +1,4 @@
-use lambda_http::{service_fn, Request, RequestExt};
+use lambda_http::{service_fn, Request};
 use products::{entrypoints::lambda::apigateway::get_products, utils::*};
 
 type E = Box<dyn std::error::Error + Send + Sync + 'static>;
@@ -26,10 +26,6 @@ async fn main() -> Result<(), E> {
     // async closures aren't stable yet. This way, the closure returns a Future,
     // which matches the signature of the lambda function.
     // See https://github.com/rust-lang/rust/issues/62290
-    lambda_http::run(service_fn(|event: Request| {
-        let ctx = event.lambda_context();
-        get_products(&store, event, ctx)
-    }))
-    .await?;
+    lambda_http::run(service_fn(|event: Request| get_products(&store, event))).await?;
     Ok(())
 }
