@@ -18,7 +18,7 @@ Resources:
   GetProductsFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: build/get-products/
+      CodeUri: target/lambda/get-products/
       Events:
         Api:
           Type: HttpApi
@@ -37,7 +37,7 @@ Resources:
   GetProductFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: build/get-product/
+      CodeUri: target/lambda/get-product/
       Events:
         Api:
           Type: HttpApi
@@ -56,7 +56,7 @@ Resources:
   PutProductFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: build/put-product/
+      CodeUri: target/lambda/put-product/
       Events:
         Api:
           Type: HttpApi
@@ -75,7 +75,7 @@ Resources:
   DeleteProductFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: build/delete-product/
+      CodeUri: target/lambda/delete-product/
       Events:
         Api:
           Type: HttpApi
@@ -94,7 +94,7 @@ Resources:
   DDBStreamsFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: build/dynamodb-streams/
+      CodeUri: target/lambda/dynamodb-streams/
       Timeout: 10
       Events:
         TableStream:
