@@ -77,6 +77,7 @@ You can find implementations of this project in other languages here:
 * [☕ Java with GraalVM](https://github.com/aws-samples/serverless-graalvm-demo)
 * [🤖 Kotlin](https://github.com/aws-samples/serverless-kotlin-demo)
 * [🏗️ TypeScript](https://github.com/aws-samples/serverless-typescript-demo)
+* [🥅 .NET](https://github.com/aws-samples/serverless-dotnet-demo)
 
 ## Security
 
