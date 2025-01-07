@@ -22,6 +22,13 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.2", features = ["fmt", "json"] }
 tokio = { version = "1", features = ["full"] }
 
+[dependencies.serde_dynamo]
+git = "https://github.com/sciguy16/serde_dynamo.git"
+branch = "aws-0_5"
+features = ["aws-sdk-dynamodb+0_6"]
+version = "3.0.0-alpha"
+optional = true
+
 [dev-dependencies]
 # Only allow hardcoded credentials for unit tests
 aws-types = { version = "0.7", features = ["hardcoded-credentials"] }
@@ -32,7 +39,7 @@ reqwest = { version = "0.11", features = ["json"] }
 
 [features]
 default = ["lambda"]
-lambda = ["lambda_runtime", "lambda_http", "rayon"]
+lambda = ["lambda_runtime", "lambda_http", "rayon", "serde_dynamo"]
 
 [[bin]]
 name = "delete-product"

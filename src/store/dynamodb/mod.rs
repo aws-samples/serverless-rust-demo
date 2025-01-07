@@ -6,11 +6,8 @@ use super::{Store, StoreDelete, StoreGet, StoreGetAll, StorePut};
 use crate::{Error, Product, ProductRange};
 use async_trait::async_trait;
 use aws_sdk_dynamodb::{model::AttributeValue, Client};
-use std::collections::HashMap;
+use serde_dynamo::aws_sdk_dynamodb_0_6::{from_attribute_value, from_item, from_items, to_item};
 use tracing::{info, instrument};
-
-mod ext;
-use ext::AttributeValuesExt;
 
 /// DynamoDB store implementation.
 pub struct DynamoDBStore {
@@ -42,14 +39,15 @@ impl StoreGetAll for DynamoDBStore {
         let res = req.send().await?;
 
         // Build response
-        let products = match res.items {
-            Some(items) => items
-                .into_iter()
-                .map(|v| v.try_into())
-                .collect::<Result<Vec<Product>, Error>>()?,
+        let products: Vec<Product> = match res.items {
+            Some(items) => from_items(items).map_err(|_|
+                // TODO: Find out correct error from underlying error?
+                Error::InternalError("Missing name"))?,
             None => Vec::default(),
         };
-        let next = res.last_evaluated_key.map(|m| m.get_s("id").unwrap());
+        let next = res
+            .last_evaluated_key
+            .map(|m| from_attribute_value(m["id"].clone()).unwrap());
         Ok(ProductRange { products, next })
     }
 }
@@ -69,7 +67,8 @@ impl StoreGet for DynamoDBStore {
             .await?;
 
         Ok(match res.item {
-            Some(item) => Some(item.try_into()?),
+            // TODO: Find out correct error from underlying error?
+            Some(item) => from_item(item).map_err(|_| Error::InternalError("Missing name"))?,
             None => None,
         })
     }
@@ -84,7 +83,8 @@ impl StorePut for DynamoDBStore {
         self.client
             .put_item()
             .table_name(&self.table_name)
-            .set_item(Some(product.into()))
+            // TODO: Can this fail?
+            .set_item(Some(to_item(product).unwrap()))
             .send()
             .await?;
 
@@ -109,41 +109,6 @@ impl StoreDelete for DynamoDBStore {
     }
 }
 
-impl From<&Product> for HashMap<String, AttributeValue> {
-    /// Convert a &Product into a DynamoDB item
-    fn from(value: &Product) -> HashMap<String, AttributeValue> {
-        let mut retval = HashMap::new();
-        retval.insert("id".to_owned(), AttributeValue::S(value.id.clone()));
-        retval.insert("name".to_owned(), AttributeValue::S(value.name.clone()));
-        retval.insert(
-            "price".to_owned(),
-            AttributeValue::N(format!("{:}", value.price)),
-        );
-
-        retval
-    }
-}
-impl TryFrom<HashMap<String, AttributeValue>> for Product {
-    type Error = Error;
-
-    /// Try to convert a DynamoDB item into a Product
-    ///
-    /// This could fail as the DynamoDB item might be missing some fields.
-    fn try_from(value: HashMap<String, AttributeValue>) -> Result<Self, Self::Error> {
-        Ok(Product {
-            id: value
-                .get_s("id")
-                .ok_or(Error::InternalError("Missing id"))?,
-            name: value
-                .get_s("name")
-                .ok_or(Error::InternalError("Missing name"))?,
-            price: value
-                .get_n("price")
-                .ok_or(Error::InternalError("Missing price"))?,
-        })
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -151,6 +116,7 @@ mod tests {
     use aws_sdk_dynamodb::{Client, Config, Credentials, Region};
     use aws_smithy_client::{erase::DynConnector, test_connection::TestConnection};
     use aws_smithy_http::body::SdkBody;
+    use std::collections::HashMap;
 
     /// Config for mocking DynamoDB
     async fn get_mock_config() -> Config {
@@ -368,7 +334,7 @@ mod tests {
         value.insert("name".to_owned(), AttributeValue::S("name".to_owned()));
         value.insert("price".to_owned(), AttributeValue::N("1.0".to_owned()));
 
-        let product = Product::try_from(value).unwrap();
+        let product: Product = from_item(value).unwrap();
         assert_eq!(product.id, "id");
         assert_eq!(product.name, "name");
         assert_eq!(product.price, 1.0);
@@ -382,7 +348,7 @@ mod tests {
             price: 1.5,
         };
 
-        let value: HashMap<String, AttributeValue> = (&product).into();
+        let value: HashMap<String, AttributeValue> = to_item(product).unwrap();
         assert_eq!(value.get("id").unwrap().as_s().unwrap(), "id");
         assert_eq!(value.get("name").unwrap().as_s().unwrap(), "name");
         assert_eq!(value.get("price").unwrap().as_n().unwrap(), "1.5");
